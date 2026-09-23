@@ -123,6 +123,7 @@
     background:var(--surface);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
+    color:var(--text);
   }
 
   .howto{
@@ -162,9 +163,10 @@
   }
   /* Section headers that sit directly on the forest page (not inside a card) —
      mist heading ink + rose eyebrow, matching vicuras.dk's own dark sections. */
-  #view-overview > .intro-eyebrow{ color:var(--pink); }
-  #view-overview > .intro-heading{ color:var(--bg-ink); }
-  #view-overview > .lede{ color:var(--bg-ink-muted); }
+  #admin-content > .intro-eyebrow, #view-meetings > .intro-eyebrow{ color:var(--pink); }
+  #admin-content > .intro-heading, #view-meetings > .intro-heading{ color:var(--bg-ink); }
+  #admin-content > .lede{ color:var(--bg-ink-muted); }
+  .ov-divider{ height:1px; background:var(--border-on-bg); margin:36px 0 26px; }
   .intro-why{
     font-size:.98rem;
     line-height:1.6;
@@ -255,7 +257,7 @@
     text-transform:uppercase;
     letter-spacing:.05em;
   }
-  input[type=text], input.plain-input{
+  input[type=text], input.plain-input, select.plain-input{
     font:inherit;
     font-size:1rem;
     color:var(--text);
@@ -265,11 +267,13 @@
     padding:9px 12px;
     width:100%;
   }
-  input[type=text]:focus, input.plain-input:focus, .tab:focus-visible, button:focus-visible{
+  select.plain-input{ cursor:pointer; }
+  input[type=text]:focus, input.plain-input:focus, select.plain-input:focus, .tab:focus-visible, button:focus-visible{
     outline:2px solid var(--brand);
     outline-offset:1px;
   }
   #name-input{ max-width:340px; font-size:1.05rem; }
+  .function-select{ max-width:340px; }
   .resume-note{
     font-size:.85rem;
     color:var(--brand);
@@ -610,6 +614,7 @@
     border-radius:var(--radius);
     box-shadow:var(--shadow);
     padding:18px 20px 20px;
+    color:var(--text);
   }
   .tree-root > .tree-root-label{
     font-weight:500;
@@ -713,6 +718,67 @@
     line-height:1.55;
   }
 
+  /* Meeting form: stepper */
+  .step-progress{
+    display:block;
+    font-size:.78rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--pink);
+    margin-bottom:14px;
+  }
+  .stepper-nav{
+    display:flex;
+    gap:8px;
+  }
+
+  /* Meeting form fields */
+  .m-field{
+    padding:16px 20px;
+    margin-bottom:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .m-field .field-label{
+    text-transform:none;
+    letter-spacing:normal;
+    font-weight:600;
+    font-size:.94rem;
+    color:var(--text);
+  }
+  textarea.plain-input{
+    font:inherit;
+    font-size:1rem;
+    color:var(--text);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-nested);
+    padding:9px 12px;
+    width:100%;
+  }
+  .m-textarea{ min-height:76px; resize:vertical; }
+  .m-duration-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(120px,1fr));
+    gap:10px;
+    margin-top:2px;
+  }
+  .m-duration-grid > div{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .m-duration-label{
+    font-size:.78rem;
+    color:var(--text-muted);
+  }
+  .m-comment-card{ padding:16px 18px; margin-bottom:10px; }
+  .m-comment-card .m-name{ font-weight:600; margin-bottom:6px; }
+  .m-comment-card .m-q{ font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin:8px 0 2px; }
+  .m-comment-card .m-a{ font-size:.92rem; line-height:1.5; color:var(--text); }
+
   @media (max-width:480px){
     .tasks{ margin-left:0; }
     .tasks-label{ margin-left:0; }
@@ -726,10 +792,11 @@
   <header class="topbar">
     <div class="brand">
       <svg class="logo-mark" viewBox="0 0 196.333 184.447" fill="#fffbf1" aria-hidden="true"><path d="M 97.574 184.443 C 89.233 184.443 76.966 181.782 65.9 169.121 C 51.737 152.911 53.882 129.338 56.86 96.716 L 57.212 92.858 C 58.58 77.73 59.872 63.437 59.245 52.938 C 59.078 50.9 57.941 40.924 51.488 40.268 C 51.265 40.246 51.046 40.234 50.823 40.234 C 43.494 40.234 34.905 52.646 29.082 61.983 L 22.17 73.066 L 0 59.237 L 6.912 48.154 C 13.82 37.076 28.185 14.048 50.334 14.048 C 52.076 14.048 53.865 14.189 55.646 14.468 C 75.846 17.639 84.569 38.792 85.32 51.376 C 86.066 63.836 84.689 79.077 83.226 95.214 L 82.793 99.904 C 80.87 120.602 78.695 144.063 85.569 151.932 C 89.327 156.236 93.236 158.325 97.514 158.325 C 97.956 158.325 98.385 158.304 98.792 158.27 C 104.962 157.776 112.814 153.614 120.902 146.543 C 128.123 140.227 133.551 133.311 134.92 131.123 C 154.618 99.638 165.036 70.813 168.696 37.663 C 168.76 36.955 170.236 21.033 170.206 12.533 L 170.159 0 L 196.285 0 L 196.332 12.439 C 196.366 22.44 194.676 40.384 194.659 40.564 C 190.548 77.785 178.955 110 157.068 144.981 C 153.979 149.92 146.728 158.669 138.099 166.212 C 125.459 177.264 112.93 183.353 100.865 184.314 C 99.779 184.4 98.672 184.447 97.574 184.447 L 97.57 184.447 L 97.574 184.443 Z" fill-rule="nonzero"/></svg>
-      <span class="sub">opgavekortlægning</span>
+      <span class="sub">kortlægning</span>
     </div>
     <nav class="tabs">
-      <button class="tab active" data-view="fill" type="button">Udfyld</button>
+      <button class="tab active" data-view="fill" type="button">Opgaver</button>
+      <button class="tab" data-view="meetings" type="button">Møder</button>
       <button class="tab" data-view="overview" type="button">Overblik</button>
     </nav>
   </header>
@@ -740,12 +807,25 @@
     <div class="intro">
       <span class="intro-eyebrow">Opgavekortlægning</span>
       <h2 class="intro-heading">Sådan udfylder du</h2>
-      <p class="intro-why">Tilføj dine <b>ansvarsområder</b> herunder (typisk 3-5 stykker), og skriv dine konkrete <b>opgaver ind under hvert område</b>. Sæt flueben ved "AI kan overtage", hvis en opgave kan klares af AI — og tryk <b>Gem svar</b> forneden, når du er færdig.</p>
+      <p class="intro-why">Tilføj dine <b>ansvarsområder</b> herunder (typisk 3-5 stykker), og skriv dine konkrete <b>opgaver ind under hvert område</b>. Sæt flueben ved "AI kan gøre det nemmere", hvis en opgave kunne løses hurtigere eller lettere med AI's hjælp — det handler om at frigøre tid, ikke om at spare opgaver væk. Tryk <b>Gem svar</b> forneden, når du er færdig.</p>
     </div>
 
     <div class="card name-card">
       <label class="field-label" for="name-input">Dit navn</label>
       <input type="text" id="name-input" placeholder="Fx Andreas Vicuras" autocomplete="off">
+      <label class="field-label" for="function-select" style="margin-top:6px;">Din funktion</label>
+      <select id="function-select" class="plain-input function-select">
+        <option value="">Vælg funktion …</option>
+        <option value="Drift">Drift</option>
+        <option value="HR">HR</option>
+        <option value="Salg">Salg</option>
+        <option value="Marketing">Marketing</option>
+        <option value="Projekt">Projekt</option>
+        <option value="IT">IT</option>
+        <option value="Arbejdsmiljø">Arbejdsmiljø</option>
+        <option value="Ledelse">Ledelse</option>
+        <option value="Økonomi">Økonomi</option>
+      </select>
       <span id="resume-note" class="resume-note" hidden>Vi fandt dit tidligere svar og har hentet det ind – ret til og gem igen for at opdatere.</span>
     </div>
 
@@ -755,6 +835,113 @@
     <div class="save-bar">
       <span class="status" id="save-status">Ikke gemt endnu</span>
       <button class="btn-primary" id="save-btn" type="button">Gem svar</button>
+    </div>
+  </section>
+
+  <section id="view-meetings" class="view" hidden>
+    <div class="intro">
+      <span class="intro-eyebrow">Mødeaktivitet</span>
+      <h2 class="intro-heading">Hvor bruger vi tiden på møder?</h2>
+      <p class="intro-why">Vi vil gerne have et præcist billede af, hvor meget tid vi bruger på interne møder i Vicuras, og hvor vi kan blive mere effektive. Svar så præcist du kan ud fra en almindelig uge — det tager kun et par minutter, i fire korte trin.</p>
+    </div>
+
+    <span class="step-progress" id="meeting-step-progress">Trin 1 af 4 · Om dig og dine møder</span>
+
+    <div class="m-step" data-step="1">
+      <div class="card name-card">
+        <label class="field-label" for="meeting-name-input">Dit navn</label>
+        <input type="text" id="meeting-name-input" placeholder="Fx Andreas Vicuras" autocomplete="off">
+        <label class="field-label" for="meeting-function-select" style="margin-top:6px;">Din funktion</label>
+        <select id="meeting-function-select" class="plain-input function-select">
+          <option value="">Vælg funktion …</option>
+          <option value="Drift">Drift</option>
+          <option value="HR">HR</option>
+          <option value="Salg">Salg</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Projekt">Projekt</option>
+          <option value="IT">IT</option>
+          <option value="Arbejdsmiljø">Arbejdsmiljø</option>
+          <option value="Ledelse">Ledelse</option>
+          <option value="Økonomi">Økonomi</option>
+        </select>
+        <span id="meeting-resume-note" class="resume-note" hidden>Vi fandt dit tidligere svar og har hentet det ind – ret til og gem igen for at opdatere.</span>
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-count">Hvor mange interne møder deltager du typisk i på en almindelig uge?</label>
+        <input type="number" min="0" id="m-count" class="plain-input" placeholder="Antal møder">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-hours">Hvor mange timer bruger du samlet på interne møder i en almindelig uge?</label>
+        <input type="number" min="0" step="0.5" id="m-hours" class="plain-input" placeholder="Antal timer">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-prep-hours">Hvor mange timer bruger du samlet på at forberede interne møder i en almindelig uge?</label>
+        <input type="number" min="0" step="0.5" id="m-prep-hours" class="plain-input" placeholder="Antal timer">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-recurring">Hvor mange faste/tilbagevendende interne møder har du i kalenderen hver uge?</label>
+        <input type="number" min="0" id="m-recurring" class="plain-input" placeholder="Antal møder">
+      </div>
+    </div>
+
+    <div class="m-step" data-step="2" hidden>
+      <div class="card m-field">
+        <label class="field-label">Hvor mange af dine interne møder varer typisk:</label>
+        <div class="m-duration-grid">
+          <div><span class="m-duration-label">15 minutter</span><input type="number" min="0" id="m-dur-15" class="plain-input"></div>
+          <div><span class="m-duration-label">30 minutter</span><input type="number" min="0" id="m-dur-30" class="plain-input"></div>
+          <div><span class="m-duration-label">45 minutter</span><input type="number" min="0" id="m-dur-45" class="plain-input"></div>
+          <div><span class="m-duration-label">60 minutter</span><input type="number" min="0" id="m-dur-60" class="plain-input"></div>
+          <div><span class="m-duration-label">Mere end 60 minutter</span><input type="number" min="0" id="m-dur-60plus" class="plain-input"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="m-step" data-step="3" hidden>
+      <div class="card m-field">
+        <label class="field-label" for="m-avoidable">Hvor mange interne møder deltager du typisk i om ugen, som efter din vurdering kunne være undgået helt?</label>
+        <input type="number" min="0" id="m-avoidable" class="plain-input" placeholder="Antal møder">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-shortenable">Hvor mange interne møder kunne efter din vurdering typisk være reduceret til maks. 15 minutter?</label>
+        <input type="number" min="0" id="m-shortenable" class="plain-input" placeholder="Antal møder">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-partial">Hvor mange møder deltager du typisk i om ugen, hvor din deltagelse ikke er nødvendig under hele mødet?</label>
+        <input type="number" min="0" id="m-partial" class="plain-input" placeholder="Antal møder">
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-freed-hours">Hvor mange timer om ugen vurderer du realistisk, at du kunne frigøre, hvis vi reducerede unødvendige eller for lange møder?</label>
+        <input type="number" min="0" step="0.5" id="m-freed-hours" class="plain-input" placeholder="Antal timer">
+      </div>
+    </div>
+
+    <div class="m-step" data-step="4" hidden>
+      <div class="card m-field">
+        <label class="field-label" for="m-what-change">Hvilke faste eller tilbagevendende møder mener du konkret, at vi bør forkorte, ændre eller fjerne?</label>
+        <textarea id="m-what-change" class="plain-input m-textarea" placeholder="Skriv frit her …"></textarea>
+      </div>
+
+      <div class="card m-field">
+        <label class="field-label" for="m-top-change">Hvad er den vigtigste ændring, vi kan foretage for at gøre vores møder mere effektive?</label>
+        <textarea id="m-top-change" class="plain-input m-textarea" placeholder="Skriv frit her …"></textarea>
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <span class="status" id="meeting-save-status">Ikke gemt endnu</span>
+      <div class="stepper-nav">
+        <button class="btn-outline" id="meeting-back-btn" type="button">Tilbage</button>
+        <button class="btn-primary" id="meeting-next-btn" type="button">Næste</button>
+        <button class="btn-primary" id="meeting-save-btn" type="button" hidden>Gem svar</button>
+      </div>
     </div>
   </section>
 
@@ -779,12 +966,12 @@
         <div class="stat"><div class="stat-value" id="stat-employees">0</div><div class="stat-label">Medarbejdere</div></div>
         <div class="stat"><div class="stat-value" id="stat-areas">0</div><div class="stat-label">Ansvarsområder</div></div>
         <div class="stat"><div class="stat-value" id="stat-tasks">0</div><div class="stat-label">Opgaver</div></div>
-        <div class="stat"><div class="stat-value" id="stat-flagged">0</div><div class="stat-label">AI-egnede opgaver</div></div>
+        <div class="stat"><div class="stat-value" id="stat-flagged">0</div><div class="stat-label">Opgaver AI kan hjælpe med</div></div>
       </div>
       <div class="controls-row">
         <label class="filter-row">
           <input type="checkbox" id="filter-flagged">
-          Vis kun AI-egnede opgaver
+          Vis kun opgaver hvor AI kan hjælpe
         </label>
         <div class="controls-right">
           <div class="seg">
@@ -796,7 +983,33 @@
       </div>
       <div id="employee-list"></div>
       <div id="tree-view" hidden></div>
-      <div id="overview-empty" class="empty" hidden>Der er endnu ingen svar. Del denne fil/adresse med teamet, så alle kan udfylde deres ansvarsområder under fanen “Udfyld”.</div>
+      <div id="overview-empty" class="empty" hidden>Der er endnu ingen svar. Del denne fil/adresse med teamet, så alle kan udfylde deres ansvarsområder under fanen “Opgaver”.</div>
+
+      <div class="ov-divider"></div>
+
+      <span class="intro-eyebrow">Mødeaktivitet</span>
+      <h2 class="intro-heading" style="margin-bottom:14px;">Tid brugt på interne møder</h2>
+      <p class="lede">Sammenfatning af alle indsendte svar om mødeaktivitet – opdateres live.</p>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-value" id="mstat-respondents">0</div><div class="stat-label">Har svaret</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-avg-meetings">0</div><div class="stat-label">Møder/uge i snit</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-avg-hours">0</div><div class="stat-label">Timer i møder/uge i snit</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-avg-prep">0</div><div class="stat-label">Timer til forberedelse/uge i snit</div></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-value" id="mstat-avoidable">0</div><div class="stat-label">Kunne undgås helt, i alt/uge</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-shortenable">0</div><div class="stat-label">Kunne forkortes til 15 min, i alt/uge</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-partial">0</div><div class="stat-label">Delvist unødvendig deltagelse, i alt/uge</div></div>
+        <div class="stat"><div class="stat-value" id="mstat-avg-freed">0</div><div class="stat-label">Timer der kunne frigøres/uge i snit</div></div>
+      </div>
+
+      <div class="controls-row" style="justify-content:flex-end;">
+        <button class="btn-outline" id="meeting-export-btn" type="button">Eksportér mødedata til Excel</button>
+      </div>
+
+      <div id="meeting-comments"></div>
+      <div id="meeting-empty" class="empty" hidden>Der er endnu ingen svar om mødeaktivitet.</div>
 
       <div class="reset-zone">
         <button class="btn-danger" id="reset-all-btn" type="button">Nulstil alle besvarelser</button>
@@ -845,6 +1058,7 @@
 
   var state = {
     name: "",
+    function: "",
     areas: [ blankArea() ],
     pristine: true
   };
@@ -854,6 +1068,7 @@
     viewFill: document.getElementById("view-fill"),
     viewOverview: document.getElementById("view-overview"),
     nameInput: document.getElementById("name-input"),
+    functionSelect: document.getElementById("function-select"),
     resumeNote: document.getElementById("resume-note"),
     areas: document.getElementById("areas"),
     addArea: document.getElementById("add-area"),
@@ -875,7 +1090,42 @@
     adminPassword: document.getElementById("admin-password"),
     adminSubmit: document.getElementById("admin-submit"),
     adminError: document.getElementById("admin-error"),
-    resetBtn: document.getElementById("reset-all-btn")
+    resetBtn: document.getElementById("reset-all-btn"),
+    viewMeetings: document.getElementById("view-meetings"),
+    meetingNameInput: document.getElementById("meeting-name-input"),
+    meetingFunctionSelect: document.getElementById("meeting-function-select"),
+    meetingResumeNote: document.getElementById("meeting-resume-note"),
+    meetingSaveBtn: document.getElementById("meeting-save-btn"),
+    meetingSaveStatus: document.getElementById("meeting-save-status"),
+    mCount: document.getElementById("m-count"),
+    mHours: document.getElementById("m-hours"),
+    mPrepHours: document.getElementById("m-prep-hours"),
+    mRecurring: document.getElementById("m-recurring"),
+    mDur15: document.getElementById("m-dur-15"),
+    mDur30: document.getElementById("m-dur-30"),
+    mDur45: document.getElementById("m-dur-45"),
+    mDur60: document.getElementById("m-dur-60"),
+    mDur60Plus: document.getElementById("m-dur-60plus"),
+    mAvoidable: document.getElementById("m-avoidable"),
+    mShortenable: document.getElementById("m-shortenable"),
+    mPartial: document.getElementById("m-partial"),
+    mFreedHours: document.getElementById("m-freed-hours"),
+    mWhatChange: document.getElementById("m-what-change"),
+    mTopChange: document.getElementById("m-top-change"),
+    mstatRespondents: document.getElementById("mstat-respondents"),
+    mstatAvgMeetings: document.getElementById("mstat-avg-meetings"),
+    mstatAvgHours: document.getElementById("mstat-avg-hours"),
+    mstatAvgFreed: document.getElementById("mstat-avg-freed"),
+    mstatAvgPrep: document.getElementById("mstat-avg-prep"),
+    mstatAvoidable: document.getElementById("mstat-avoidable"),
+    mstatShortenable: document.getElementById("mstat-shortenable"),
+    mstatPartial: document.getElementById("mstat-partial"),
+    meetingComments: document.getElementById("meeting-comments"),
+    meetingEmpty: document.getElementById("meeting-empty"),
+    meetingStepProgress: document.getElementById("meeting-step-progress"),
+    meetingBackBtn: document.getElementById("meeting-back-btn"),
+    meetingNextBtn: document.getElementById("meeting-next-btn"),
+    meetingExportBtn: document.getElementById("meeting-export-btn")
   };
 
   /* ---------- Admin login (local, hardcoded — gates the overview tab) ---------- */
@@ -884,6 +1134,7 @@
       els.adminGate.hidden = true;
       els.adminContent.hidden = false;
       subscribeOverview();
+      subscribeMeetingsOverview();
     } else {
       els.adminGate.hidden = false;
       els.adminContent.hidden = true;
@@ -913,6 +1164,7 @@
       tab.classList.add("active");
       var view = tab.getAttribute("data-view");
       els.viewFill.hidden = view !== "fill";
+      els.viewMeetings.hidden = view !== "meetings";
       els.viewOverview.hidden = view !== "overview";
       if (view === "overview") showOverview();
     });
@@ -1009,14 +1261,14 @@
     var checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = !!task.aiCandidate;
-    checkbox.title = "Denne opgave kan AI-optimeres eller overtages";
+    checkbox.title = "Denne opgave kunne gøres nemmere eller hurtigere med AI's hjælp";
     checkbox.addEventListener("change", function(){
       task.aiCandidate = checkbox.checked;
       label.classList.toggle("on", task.aiCandidate);
       markDirty();
     });
     label.appendChild(checkbox);
-    label.appendChild(document.createTextNode("AI kan overtage"));
+    label.appendChild(document.createTextNode("AI kan gøre det nemmere"));
     row.appendChild(label);
 
     if (area.tasks.length > 1){
@@ -1049,10 +1301,19 @@
 
   renderAreas();
 
-  /* ---------- Name + resume from shared database ---------- */
+  /* ---------- Name + funktion + resume from shared database ---------- */
   var savedName = "";
+  var savedFunction = "";
   try { savedName = localStorage.getItem("vicuras-tasks-name") || ""; } catch(e){}
+  try { savedFunction = localStorage.getItem("vicuras-function") || ""; } catch(e){}
   if (savedName){ els.nameInput.value = savedName; state.name = savedName; }
+  if (savedFunction){ els.functionSelect.value = savedFunction; state.function = savedFunction; }
+
+  els.functionSelect.addEventListener("change", function(){
+    state.function = els.functionSelect.value;
+    try { localStorage.setItem("vicuras-function", state.function); } catch(e){}
+    markDirty();
+  });
 
   var loadTimer = null;
   els.nameInput.addEventListener("input", function(){
@@ -1078,6 +1339,10 @@
           })
         };
       });
+      if (data.function){
+        state.function = data.function;
+        els.functionSelect.value = data.function;
+      }
       renderAreas();
       els.resumeNote.hidden = false;
       els.saveStatus.textContent = "Hentet fra dit tidligere svar";
@@ -1113,6 +1378,7 @@
 
     var payload = {
       name: name,
+      function: state.function || "",
       areas: cleanedAreas,
       updatedAt: new Date().toISOString()
     };
@@ -1127,6 +1393,155 @@
       console.error(err);
     }).finally(function(){
       els.saveBtn.disabled = false;
+    });
+  });
+
+  /* ---------- Meetings: stepper (grouped questions, Næste/Tilbage) ---------- */
+  var meetingStepEls = Array.prototype.slice.call(document.querySelectorAll(".m-step"));
+  var meetingTotalSteps = meetingStepEls.length;
+  var meetingStepTitles = {
+    1: "Om dig og dine møder",
+    2: "Mødelængder",
+    3: "Effektivisering",
+    4: "Dine forslag"
+  };
+  var meetingCurrentStep = 1;
+
+  function updateMeetingStepUI(){
+    meetingStepEls.forEach(function(el){
+      el.hidden = Number(el.dataset.step) !== meetingCurrentStep;
+    });
+    els.meetingStepProgress.textContent = "Trin " + meetingCurrentStep + " af " + meetingTotalSteps +
+      (meetingStepTitles[meetingCurrentStep] ? " · " + meetingStepTitles[meetingCurrentStep] : "");
+    els.meetingBackBtn.disabled = meetingCurrentStep === 1;
+    var isLast = meetingCurrentStep === meetingTotalSteps;
+    els.meetingNextBtn.hidden = isLast;
+    els.meetingSaveBtn.hidden = !isLast;
+  }
+
+  els.meetingNextBtn.addEventListener("click", function(){
+    meetingCurrentStep = Math.min(meetingCurrentStep + 1, meetingTotalSteps);
+    updateMeetingStepUI();
+    els.viewMeetings.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+  els.meetingBackBtn.addEventListener("click", function(){
+    meetingCurrentStep = Math.max(meetingCurrentStep - 1, 1);
+    updateMeetingStepUI();
+    els.viewMeetings.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  updateMeetingStepUI();
+
+  /* ---------- Meetings: name + funktion + resume from shared database ---------- */
+  var meetingPristine = true;
+  if (savedName){ els.meetingNameInput.value = savedName; }
+  if (savedFunction){ els.meetingFunctionSelect.value = savedFunction; }
+
+  function markMeetingDirty(){
+    meetingPristine = false;
+    els.meetingSaveStatus.textContent = "Ikke gemt";
+  }
+
+  var meetingFields = [
+    els.mCount, els.mHours, els.mPrepHours, els.mRecurring,
+    els.mDur15, els.mDur30, els.mDur45, els.mDur60, els.mDur60Plus,
+    els.mAvoidable, els.mShortenable, els.mPartial, els.mFreedHours,
+    els.mWhatChange, els.mTopChange
+  ];
+  meetingFields.forEach(function(el){
+    el.addEventListener("input", markMeetingDirty);
+  });
+  els.meetingFunctionSelect.addEventListener("change", function(){
+    try { localStorage.setItem("vicuras-function", els.meetingFunctionSelect.value); } catch(e){}
+    markMeetingDirty();
+  });
+
+  var meetingLoadTimer = null;
+  els.meetingNameInput.addEventListener("input", function(){
+    try { localStorage.setItem("vicuras-tasks-name", els.meetingNameInput.value); } catch(e){}
+    markMeetingDirty();
+    clearTimeout(meetingLoadTimer);
+    meetingLoadTimer = setTimeout(maybeLoadExistingMeeting, 500);
+  });
+
+  function setNumVal(el, v){ el.value = (v === null || v === undefined) ? "" : v; }
+
+  function maybeLoadExistingMeeting(){
+    var name = els.meetingNameInput.value.trim();
+    if (!meetingPristine || !name) return;
+    var slug = slugify(name);
+    getDoc(doc(db, "meetings", slug)).then(function(snap){
+      if (!snap.exists() || !meetingPristine) return;
+      var d = snap.data();
+      if (!d) return;
+      setNumVal(els.mCount, d.meetingsPerWeek);
+      setNumVal(els.mHours, d.hoursInMeetings);
+      setNumVal(els.mPrepHours, d.hoursPrep);
+      setNumVal(els.mRecurring, d.recurringMeetings);
+      var dur = d.duration || {};
+      setNumVal(els.mDur15, dur.min15);
+      setNumVal(els.mDur30, dur.min30);
+      setNumVal(els.mDur45, dur.min45);
+      setNumVal(els.mDur60, dur.min60);
+      setNumVal(els.mDur60Plus, dur.over60);
+      setNumVal(els.mAvoidable, d.avoidableMeetings);
+      setNumVal(els.mShortenable, d.shortenableMeetings);
+      setNumVal(els.mPartial, d.partialAttendance);
+      setNumVal(els.mFreedHours, d.hoursFreed);
+      els.mWhatChange.value = d.whatToChange || "";
+      els.mTopChange.value = d.topChange || "";
+      if (d.function) els.meetingFunctionSelect.value = d.function;
+      els.meetingResumeNote.hidden = false;
+      els.meetingSaveStatus.textContent = "Hentet fra dit tidligere svar";
+    }).catch(function(){});
+  }
+
+  if (els.meetingNameInput.value) maybeLoadExistingMeeting();
+
+  els.meetingSaveBtn.addEventListener("click", function(){
+    var name = els.meetingNameInput.value.trim();
+    if (!name){
+      els.meetingSaveStatus.textContent = "Skriv dit navn før du gemmer";
+      els.meetingNameInput.focus();
+      return;
+    }
+    function num(el){
+      var v = parseFloat(el.value);
+      return isNaN(v) ? null : v;
+    }
+    var payload = {
+      name: name,
+      function: els.meetingFunctionSelect.value || "",
+      meetingsPerWeek: num(els.mCount),
+      hoursInMeetings: num(els.mHours),
+      hoursPrep: num(els.mPrepHours),
+      recurringMeetings: num(els.mRecurring),
+      duration: {
+        min15: num(els.mDur15),
+        min30: num(els.mDur30),
+        min45: num(els.mDur45),
+        min60: num(els.mDur60),
+        over60: num(els.mDur60Plus)
+      },
+      avoidableMeetings: num(els.mAvoidable),
+      shortenableMeetings: num(els.mShortenable),
+      partialAttendance: num(els.mPartial),
+      hoursFreed: num(els.mFreedHours),
+      whatToChange: els.mWhatChange.value.trim(),
+      topChange: els.mTopChange.value.trim(),
+      updatedAt: new Date().toISOString()
+    };
+    var slug = slugify(name);
+    els.meetingSaveBtn.disabled = true;
+    els.meetingSaveStatus.textContent = "Gemmer …";
+    setDoc(doc(db, "meetings", slug), payload).then(function(){
+      meetingPristine = false;
+      els.meetingSaveStatus.textContent = "Gemt ✓";
+    }).catch(function(err){
+      els.meetingSaveStatus.textContent = "Kunne ikke gemme – prøv igen";
+      console.error(err);
+    }).finally(function(){
+      els.meetingSaveBtn.disabled = false;
     });
   });
 
@@ -1212,12 +1627,18 @@
         var h3 = document.createElement("h3");
         h3.textContent = person.name || "Uden navn";
         head.appendChild(h3);
+        if (person.function){
+          var funcChip = document.createElement("span");
+          funcChip.className = "area-chip";
+          funcChip.textContent = person.function;
+          head.appendChild(funcChip);
+        }
         var meta = document.createElement("span");
         meta.className = "emp-meta";
         var when = "";
         try { when = person.updatedAt ? new Date(person.updatedAt).toLocaleString("da-DK",{dateStyle:"short",timeStyle:"short"}) : ""; } catch(e){}
         meta.textContent = areas.length + " ansvarsområde" + (areas.length===1?"":"r") +
-          " · " + empTaskCount + " opgaver" + (empAiCount ? " · " + empAiCount + " AI-egnet" : "") +
+          " · " + empTaskCount + " opgaver" + (empAiCount ? " · AI kan hjælpe med " + empAiCount : "") +
           (when ? " · opdateret " + when : "");
         head.appendChild(meta);
         summary.appendChild(head);
@@ -1260,7 +1681,7 @@
               badges.className = "badges";
               var b1 = document.createElement("span");
               b1.className = "badge pink";
-              b1.textContent = "AI-egnet";
+              b1.textContent = "AI kan hjælpe";
               badges.appendChild(b1);
               li.appendChild(badges);
             }
@@ -1282,9 +1703,9 @@
         empDetails.open = true;
         var empSummary = document.createElement("summary");
         empSummary.className = "node-emp";
-        empSummary.innerHTML = escapeHtml(person.name || "Uden navn") +
+        empSummary.innerHTML = escapeHtml(person.name || "Uden navn") + (person.function ? " (" + escapeHtml(person.function) + ")" : "") +
           ' <span class="count">· ' + areas.length + " områder, " + empTaskCount + " opgaver" +
-          (empAiCount ? ", " + empAiCount + " AI-egnede" : "") + "</span>";
+          (empAiCount ? ", AI kan hjælpe med " + empAiCount : "") + "</span>";
         empDetails.appendChild(empSummary);
 
         var areaUl = document.createElement("ul");
@@ -1297,7 +1718,7 @@
           var aiInArea = block.tasks.filter(isAi).length;
           areaSummary.innerHTML = escapeHtml(block.area.name || "Uden navn") +
             ' <span class="count">· ' + block.tasks.length + " opgaver" +
-            (aiInArea ? ", " + aiInArea + " AI-egnede" : "") + "</span>";
+            (aiInArea ? ", AI kan hjælpe med " + aiInArea : "") + "</span>";
           areaDetails.appendChild(areaSummary);
 
           var taskUl = document.createElement("ul");
@@ -1310,7 +1731,7 @@
             dot.className = "dot";
             taskDiv.appendChild(dot);
             var txt = document.createElement("span");
-            txt.textContent = t.text + (flagged ? " · AI-egnet" : "");
+            txt.textContent = t.text + (flagged ? " · AI kan hjælpe" : "");
             taskDiv.appendChild(txt);
             taskLi.appendChild(taskDiv);
             taskUl.appendChild(taskLi);
@@ -1352,11 +1773,11 @@
   els.exportBtn.addEventListener("click", function(){
     var docs = latestDocs.slice();
     if (!docs.length) return;
-    var rows = [["Medarbejder","Ansvarsområde","Opgave","AI-egnet"]];
+    var rows = [["Medarbejder","Funktion","Ansvarsområde","Opgave","AI kan hjælpe"]];
     docs.forEach(function(person){
       (person.areas||[]).forEach(function(area){
         (area.tasks||[]).forEach(function(t){
-          rows.push([person.name||"", area.name||"", t.text||"", isAi(t) ? "Ja" : "Nej"]);
+          rows.push([person.name||"", person.function||"", area.name||"", t.text||"", isAi(t) ? "Ja" : "Nej"]);
         });
       });
     });
@@ -1367,10 +1788,131 @@
       return;
     }
     var ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"] = [{ wch:22 }, { wch:22 }, { wch:55 }, { wch:10 }];
+    ws["!cols"] = [{ wch:22 }, { wch:14 }, { wch:22 }, { wch:55 }, { wch:10 }];
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Opgavekortlægning");
     XLSX.writeFile(wb, "opgavekortlaegning.xlsx");
+  });
+
+  /* ---------- Mødeaktivitet overview (live, shared via Firestore) ---------- */
+  var latestMeetingDocs = [];
+  var meetingsSubscribed = false;
+
+  function subscribeMeetingsOverview(){
+    if (meetingsSubscribed){ renderMeetingsOverview(); return; }
+    meetingsSubscribed = true;
+    onSnapshot(collection(db, "meetings"), function(snap){
+      latestMeetingDocs = snap.docs.map(function(d){
+        var data = d.data();
+        if (!data) return null;
+        data.__id = d.id;
+        return data;
+      }).filter(Boolean);
+      renderMeetingsOverview();
+    }, function(err){
+      meetingsSubscribed = false;
+      console.error(err);
+    });
+  }
+
+  function avg(list){
+    var nums = list.filter(function(v){ return typeof v === "number" && !isNaN(v); });
+    if (!nums.length) return 0;
+    return nums.reduce(function(a,b){ return a+b; }, 0) / nums.length;
+  }
+  function sum(list){
+    return list.filter(function(v){ return typeof v === "number" && !isNaN(v); })
+      .reduce(function(a,b){ return a+b; }, 0);
+  }
+  function fmt(n){
+    return (Math.round(n * 10) / 10).toLocaleString("da-DK");
+  }
+
+  function renderMeetingsOverview(){
+    var docs = latestMeetingDocs.slice().sort(function(a,b){
+      return (a.name||"").localeCompare(b.name||"", "da");
+    });
+
+    els.mstatRespondents.textContent = docs.length;
+    els.mstatAvgMeetings.textContent = fmt(avg(docs.map(function(d){ return d.meetingsPerWeek; })));
+    els.mstatAvgHours.textContent = fmt(avg(docs.map(function(d){ return d.hoursInMeetings; })));
+    els.mstatAvgPrep.textContent = fmt(avg(docs.map(function(d){ return d.hoursPrep; })));
+    els.mstatAvoidable.textContent = fmt(sum(docs.map(function(d){ return d.avoidableMeetings; })));
+    els.mstatShortenable.textContent = fmt(sum(docs.map(function(d){ return d.shortenableMeetings; })));
+    els.mstatPartial.textContent = fmt(sum(docs.map(function(d){ return d.partialAttendance; })));
+    els.mstatAvgFreed.textContent = fmt(avg(docs.map(function(d){ return d.hoursFreed; })));
+
+    els.meetingComments.innerHTML = "";
+    var withComments = docs.filter(function(d){ return (d.whatToChange && d.whatToChange.trim()) || (d.topChange && d.topChange.trim()); });
+    withComments.forEach(function(d){
+      var card = document.createElement("div");
+      card.className = "card m-comment-card";
+      var name = document.createElement("div");
+      name.className = "m-name";
+      name.textContent = (d.name || "Uden navn") + (d.function ? " · " + d.function : "");
+      card.appendChild(name);
+      if (d.whatToChange && d.whatToChange.trim()){
+        var q1 = document.createElement("div");
+        q1.className = "m-q";
+        q1.textContent = "Møder der bør forkortes, ændres eller fjernes";
+        var a1 = document.createElement("div");
+        a1.className = "m-a";
+        a1.textContent = d.whatToChange;
+        card.appendChild(q1);
+        card.appendChild(a1);
+      }
+      if (d.topChange && d.topChange.trim()){
+        var q2 = document.createElement("div");
+        q2.className = "m-q";
+        q2.textContent = "Vigtigste ændring";
+        var a2 = document.createElement("div");
+        a2.className = "m-a";
+        a2.textContent = d.topChange;
+        card.appendChild(q2);
+        card.appendChild(a2);
+      }
+      els.meetingComments.appendChild(card);
+    });
+
+    els.meetingEmpty.hidden = docs.length > 0;
+  }
+
+  /* ---------- Export af mødeaktivitet til Excel ---------- */
+  els.meetingExportBtn.addEventListener("click", function(){
+    var docs = latestMeetingDocs.slice().sort(function(a,b){
+      return (a.name||"").localeCompare(b.name||"", "da");
+    });
+    if (!docs.length) return;
+    var rows = [[
+      "Medarbejder","Funktion","Møder/uge","Timer i møder/uge","Timer til forberedelse/uge",
+      "Faste møder/uge","15 min","30 min","45 min","60 min","Over 60 min",
+      "Kunne undgås helt","Kunne forkortes til 15 min","Delvist unødvendig deltagelse",
+      "Timer der kunne frigøres/uge","Møder der bør ændres","Vigtigste ændring"
+    ]];
+    docs.forEach(function(d){
+      var dur = d.duration || {};
+      rows.push([
+        d.name||"", d.function||"", d.meetingsPerWeek, d.hoursInMeetings, d.hoursPrep,
+        d.recurringMeetings, dur.min15, dur.min30, dur.min45, dur.min60, dur.over60,
+        d.avoidableMeetings, d.shortenableMeetings, d.partialAttendance,
+        d.hoursFreed, d.whatToChange||"", d.topChange||""
+      ]);
+    });
+    if (typeof XLSX === "undefined"){
+      var prevLabel = els.meetingExportBtn.textContent;
+      els.meetingExportBtn.textContent = "Kunne ikke indlæse Excel-eksport – tjek internetforbindelsen";
+      setTimeout(function(){ els.meetingExportBtn.textContent = prevLabel; }, 4000);
+      return;
+    }
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"] = [
+      { wch:22 }, { wch:14 }, { wch:11 }, { wch:15 }, { wch:15 },
+      { wch:12 }, { wch:8 }, { wch:8 }, { wch:8 }, { wch:8 }, { wch:10 },
+      { wch:14 }, { wch:16 }, { wch:16 }, { wch:16 }, { wch:40 }, { wch:40 }
+    ];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Mødeaktivitet");
+    XLSX.writeFile(wb, "modeaktivitet.xlsx");
   });
 
   /* ---------- Nulstil alle besvarelser (admin) — tryk to gange for at bekræfte ---------- */
@@ -1387,16 +1929,20 @@
       return;
     }
     resetArmed = false;
-    var docs = latestDocs.slice();
-    if (!docs.length){
+    var taskDocs = latestDocs.slice();
+    var meetingDocsToDelete = latestMeetingDocs.slice();
+    if (!taskDocs.length && !meetingDocsToDelete.length){
       els.resetBtn.textContent = resetDefaultLabel;
       return;
     }
     els.resetBtn.disabled = true;
     els.resetBtn.textContent = "Sletter …";
-    Promise.all(docs.map(function(person){
+    var deletions = taskDocs.map(function(person){
       return deleteDoc(doc(db, "responses", person.__id || slugify(person.name || "")));
-    })).then(function(){
+    }).concat(meetingDocsToDelete.map(function(person){
+      return deleteDoc(doc(db, "meetings", person.__id || slugify(person.name || "")));
+    }));
+    Promise.all(deletions).then(function(){
       els.resetBtn.textContent = resetDefaultLabel;
       els.resetBtn.disabled = false;
     }).catch(function(err){
@@ -1408,6 +1954,7 @@
 
   /* ---------- Boot ---------- */
   renderOverview();
+  renderMeetingsOverview();
 </script>
 </body>
 </html>
