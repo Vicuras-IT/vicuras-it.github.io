@@ -1,0 +1,1663 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Humør helte · Vicuras</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;500;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<style>
+  /* Vicuras brand tokens — from the Vicuras Design System (tokens.json), same
+     "Forest & mist" combination as the kortlægning page: forest page ground,
+     eggshell cards floating on top, rose reserved as the accent pop. */
+  :root{
+    --bg:#0e5642;           /* vic-forest */
+    --bg-ink:#e0e5dd;       /* vic-mist — text-on-forest */
+    --bg-ink-muted:rgba(224,229,221,0.7);
+    --surface:#fffbf1;      /* vic-eggshell — surface-card */
+    --surface-alt:#e0e5dd;  /* vic-mist — quiet fills inside cards */
+    --border:rgba(35,32,73,0.1);        /* hairline */
+    --border-strong:rgba(35,32,73,0.3); /* hairline-visible */
+    --border-on-bg:rgba(224,229,221,0.25);
+    --text:#232049;         /* vic-midnight */
+    --text-muted:#707070;   /* vic-grey */
+    --brand:#772e4b;        /* vic-berry — action-primary */
+    --brand-soft:#e0e5dd;   /* vic-mist */
+    --pink:#dab5cf;         /* vic-rose — accent pop */
+    --pink-soft:#f9f0f8;    /* vic-rose-wash */
+    --danger:#fb6c66;       /* vic-coral */
+    --shadow:inset 0 0 0 0.5px rgba(35,32,73,0.3);
+    --radius:32px;          /* radius-card */
+    --radius-nested:16px;   /* radius-nested */
+    --radius-button:18px;   /* radius-button */
+    --radius-pill:39px;     /* radius-pill */
+    --ease:cubic-bezier(0.4,0,0.2,1);       /* ease-standard */
+    --ease-pop:cubic-bezier(0.34,1.56,0.64,1); /* a little overshoot for playful moments */
+    --dur:200ms;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--bg-ink);
+    font-family:"Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin:0;
+    overflow-x:hidden;
+  }
+  *{box-sizing:border-box;}
+  [hidden]{ display:none !important; }
+  ::selection{ background:var(--pink); color:var(--brand); }
+  .page{
+    position:relative;
+    z-index:1;
+    max-width:900px;
+    margin:0 auto;
+    padding-inline:20px;
+    padding-block:28px 96px;
+  }
+  h1,h2,h3,h4{
+    font-family:inherit;
+    font-weight:400;
+    text-wrap:balance;
+    margin:0;
+  }
+
+  /* ---------- Motion ---------- */
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:none; }
+  }
+  @keyframes pop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.28) rotate(-6deg); }
+    70%{ transform:scale(.94) rotate(3deg); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-7px) rotate(-1deg); }
+    40%{ transform:translateX(6px) rotate(1deg); }
+    60%{ transform:translateX(-4px); }
+    80%{ transform:translateX(3px); }
+  }
+  @keyframes wave{
+    0%,100%{ transform:rotate(0); }
+    25%{ transform:rotate(-14deg); }
+    75%{ transform:rotate(12deg); }
+  }
+  @keyframes bob{
+    0%,100%{ transform:translateY(0) rotate(-8deg); }
+    50%{ transform:translateY(-5px) rotate(6deg); }
+  }
+  @keyframes floatUp{
+    from{ transform:translateY(0) rotate(0); opacity:0; }
+    10%{ opacity:.55; }
+    90%{ opacity:.55; }
+    to{ transform:translateY(-115vh) rotate(25deg); opacity:0; }
+  }
+  @keyframes flash{
+    0%{ background:var(--pink); }
+    100%{ background:transparent; }
+  }
+  @keyframes drum{
+    0%,100%{ transform:translateY(0) scale(1); }
+    50%{ transform:translateY(-3px) scale(1.04); }
+  }
+  @keyframes revealCard{
+    0%{ opacity:0; transform:perspective(600px) rotateX(70deg) scale(.7); }
+    60%{ opacity:1; transform:perspective(600px) rotateX(-10deg) scale(1.04); }
+    100%{ opacity:1; transform:none; }
+  }
+  .rise{ animation:rise 520ms var(--ease) both; animation-delay:calc(var(--i, 0) * 60ms); }
+  .popping{ animation:pop 420ms var(--ease-pop); }
+  .shaking{ animation:shake 380ms var(--ease); }
+
+  /* Floating party bits behind the login card */
+  .floaties{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .floaties span{
+    position:absolute;
+    bottom:-60px;
+    font-size:28px;
+    animation:floatUp linear infinite;
+    filter:saturate(.8);
+  }
+
+  /* Top bar */
+  .topbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .logo-mark{ width:24px; height:23px; flex:none; transition:transform 400ms var(--ease-pop); }
+  .brand:hover .logo-mark{ transform:rotate(-12deg) scale(1.15); }
+  .brand .sub{ font-size:1.05rem; color:var(--bg-ink); font-weight:500; }
+  .topbar-right{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+  .tabs{
+    display:flex;
+    background:rgba(255,251,241,0.1);
+    border:1px solid var(--border-on-bg);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .tab{
+    border:0;
+    background:transparent;
+    color:var(--bg-ink-muted);
+    font:inherit;
+    font-weight:600;
+    font-size:.9rem;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .tab.active{
+    background:var(--surface);
+    color:var(--brand);
+    box-shadow:var(--shadow);
+  }
+  .user-chip{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:.88rem;
+    color:var(--bg-ink);
+  }
+  .user-chip button{
+    font:inherit;
+    font-size:.82rem;
+    font-weight:600;
+    background:transparent;
+    color:var(--bg-ink-muted);
+    border:1px solid var(--border-on-bg);
+    border-radius:999px;
+    padding:5px 12px;
+    cursor:pointer;
+    transition:color var(--dur) var(--ease);
+  }
+  .user-chip button:hover{ color:var(--bg-ink); }
+  .demo-badge{
+    font-size:.72rem;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:var(--pink);
+    color:var(--brand);
+    border-radius:999px;
+    padding:3px 10px;
+  }
+
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    color:var(--text);
+  }
+  .howto{
+    background:var(--brand-soft);
+    color:var(--text);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    font-size:.9rem;
+    line-height:1.55;
+    margin-bottom:22px;
+  }
+  .howto strong{ color:var(--brand); }
+
+  /* Intro */
+  .intro{
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    border-radius:var(--radius);
+    padding:22px 24px 24px;
+    margin-bottom:22px;
+    color:var(--text);
+  }
+  .intro-eyebrow{
+    display:block;
+    font-size:.78rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--brand);
+    margin-bottom:8px;
+  }
+  .intro-heading{
+    font-weight:400;
+    font-size:1.5rem;
+    line-height:1.3;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .wave-hand{ display:inline-block; transform-origin:70% 80%; animation:wave 1.6s var(--ease) 600ms 2; }
+  .intro-why{
+    font-size:.98rem;
+    line-height:1.6;
+    color:var(--text);
+    margin:0 0 16px;
+    max-width:66ch;
+  }
+  .intro-steps{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .intro-steps li{ display:flex; gap:12px; align-items:flex-start; }
+  .intro-steps .num{
+    flex:none;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--brand);
+    color:var(--pink);
+    font-size:.85rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .intro-steps .txt{ font-size:.92rem; line-height:1.5; padding-top:3px; }
+
+  /* Sections that sit directly on the forest page — mist heading + rose eyebrow */
+  .on-bg > .intro-eyebrow{ color:var(--pink); }
+  .on-bg > .intro-heading{ color:var(--bg-ink); }
+  .on-bg > .lede{ color:var(--bg-ink-muted); }
+  .lede{
+    font-size:1rem;
+    line-height:1.55;
+    max-width:64ch;
+    margin:0 0 16px;
+  }
+  .ov-divider{ height:1px; background:var(--border-on-bg); margin:36px 0 26px; }
+
+  /* Login */
+  .login-card{
+    padding:28px 26px 26px;
+    max-width:460px;
+    margin:40px auto 0;
+  }
+  .btn-ms{
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    margin-top:6px;
+  }
+  .btn-ms svg{ width:18px; height:18px; flex:none; }
+  .login-error{ color:#b8322c; font-size:.88rem; margin:14px 0 0; line-height:1.5; }
+  .muted{ color:var(--text-muted); font-size:.86rem; line-height:1.5; }
+
+  /* Former heroes */
+  .heroes{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(170px,1fr));
+    gap:12px;
+    margin-bottom:28px;
+  }
+  .hero{
+    position:relative;
+    background:var(--surface);
+    border-radius:var(--radius-nested);
+    box-shadow:var(--shadow);
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:var(--text);
+    transition:transform 300ms var(--ease-pop);
+  }
+  .hero:hover{ transform:translateY(-3px) rotate(-1deg); }
+  .hero .medal{
+    position:absolute;
+    top:-10px;
+    right:10px;
+    font-size:22px;
+    transform-origin:50% 0;
+  }
+  .hero:hover .medal{ animation:wave 900ms var(--ease); }
+  .avatar{
+    flex:none;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:var(--pink);
+    color:var(--brand);
+    font-weight:800;
+    font-size:.9rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .hero-name{ font-weight:700; }
+  .hero-meta{ font-size:.78rem; color:var(--text-muted); }
+
+  /* Ballot — pick list of colleagues */
+  .ballot-card{ padding:20px 20px 22px; }
+  .ballot-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .field-label{
+    font-size:.82rem;
+    font-weight:600;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .pick-count{ font-size:.9rem; font-weight:700; color:var(--brand); font-variant-numeric:tabular-nums; }
+  .meter{
+    display:flex;
+    gap:6px;
+    margin:4px 0 16px;
+  }
+  .meter span{
+    flex:1;
+    height:6px;
+    border-radius:999px;
+    background:var(--surface-alt);
+    position:relative;
+    overflow:hidden;
+  }
+  .meter span::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--brand);
+    transform:scaleX(0);
+    transform-origin:left;
+    transition:transform 380ms var(--ease-pop);
+  }
+  .meter span.on::after{ transform:scaleX(1); }
+  .office-group + .office-group{ margin-top:18px; }
+  .office-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:6px 12px;
+    margin-bottom:8px;
+  }
+  .office-name{ font-weight:800; font-size:1rem; }
+  .office-status{
+    font-size:.8rem;
+    font-weight:700;
+    border-radius:999px;
+    padding:3px 10px;
+    background:var(--surface-alt);
+    color:var(--text-muted);
+    transition:background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .office-status.ok{ background:var(--brand); color:var(--pink); }
+  .pick-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+    gap:8px;
+  }
+  .office-tag{
+    display:inline-block;
+    margin-left:6px;
+    font-size:.68rem;
+    font-weight:800;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    background:var(--surface-alt);
+    border-radius:999px;
+    padding:1px 8px;
+    vertical-align:2px;
+  }
+  .pick{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    font:inherit;
+    font-size:.95rem;
+    color:var(--text);
+    background:var(--surface-alt);
+    border:0;
+    border-radius:var(--radius-nested);
+    padding:8px 12px 8px 8px;
+    cursor:pointer;
+    transition:background var(--dur) var(--ease), opacity var(--dur) var(--ease), transform 250ms var(--ease-pop), box-shadow var(--dur) var(--ease);
+  }
+  .pick .avatar{
+    width:32px;
+    height:32px;
+    font-size:.8rem;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    transition:background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .pick .pick-name{ flex:1; font-weight:600; line-height:1.25; }
+  .pick .tick{
+    flex:none;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    box-shadow:inset 0 0 0 1.5px var(--border-strong);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.8rem;
+    color:transparent;
+    transition:background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .pick:hover{ background:#d5dbd1; transform:translateY(-2px); }
+  .pick:active{ transform:scale(.97); }
+  .pick[aria-pressed="true"]{ background:var(--pink-soft); box-shadow:inset 0 0 0 1.5px var(--brand); }
+  .pick[aria-pressed="true"] .avatar{ background:var(--brand); color:var(--pink); box-shadow:none; }
+  .pick[aria-pressed="true"] .tick{ background:var(--brand); color:var(--pink); box-shadow:none; }
+  .pick.full{ opacity:.5; }
+  .pick.full:hover{ background:var(--surface-alt); transform:none; }
+
+  /* Toast — a playful one-liner after each pick */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:104px;
+    z-index:20;
+    max-width:min(92vw, 460px);
+    background:var(--text);
+    color:var(--surface);
+    font-size:.92rem;
+    font-weight:500;
+    line-height:1.4;
+    padding:10px 18px;
+    border-radius:var(--radius-nested);
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    transform:translate(-50%, 20px);
+    opacity:0;
+    pointer-events:none;
+    transition:transform 300ms var(--ease-pop), opacity 200ms var(--ease);
+  }
+  .toast.show{ transform:translate(-50%, 0); opacity:1; }
+
+  /* Save bar — CtaBlock-style slab housing the button */
+  .save-bar{
+    position:sticky;
+    bottom:16px;
+    margin-top:24px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    border-radius:var(--radius-pill);
+    padding:8px 8px 8px 20px;
+  }
+  .save-bar .status{ flex:1; font-size:.88rem; color:var(--text-muted); }
+  .btn-primary{
+    font-family:inherit;
+    font-weight:500;
+    font-size:19.559px;
+    line-height:1.2;
+    background:var(--brand);
+    color:var(--pink);
+    border:0;
+    border-radius:var(--radius-button);
+    padding:7.334px 29.338px;
+    cursor:pointer;
+    transition:opacity var(--dur) var(--ease), transform 250ms var(--ease-pop);
+    white-space:nowrap;
+  }
+  .btn-primary:hover{ opacity:.88; transform:translateY(-1px); }
+  .btn-primary:active{ transform:scale(.96); }
+  .btn-primary:disabled{ opacity:.4; cursor:default; transform:none; }
+  .btn-outline{
+    font:inherit;
+    font-weight:500;
+    font-size:.85rem;
+    background:var(--surface);
+    color:var(--brand);
+    border:0;
+    box-shadow:var(--shadow);
+    border-radius:var(--radius-button);
+    padding:9px 16px;
+    cursor:pointer;
+    transition:opacity var(--dur) var(--ease), transform 250ms var(--ease-pop);
+  }
+  .btn-outline:hover{ opacity:.85; transform:translateY(-1px); }
+
+  /* Thank-you state */
+  .thanks{ padding:28px 24px; text-align:center; }
+  .thanks .big{ font-size:2.6rem; line-height:1; margin-bottom:12px; display:inline-block; animation:pop 700ms var(--ease-pop) 150ms both; }
+  .chosen{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    margin:14px 0 14px;
+  }
+  .chip{
+    font-size:.85rem;
+    font-weight:700;
+    border-radius:999px;
+    padding:5px 13px;
+    background:var(--pink);
+    color:var(--brand);
+  }
+  .chosen .chip{ animation:rise 420ms var(--ease-pop) both; animation-delay:calc(300ms + var(--i, 0) * 110ms); }
+  .chip.quiet{ background:var(--surface); color:var(--text); font-weight:600; box-shadow:var(--shadow); }
+  .chip.missing{ background:transparent; color:var(--bg-ink-muted); box-shadow:inset 0 0 0 1px var(--border-on-bg); font-weight:500; }
+
+  /* Results */
+  .results-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .stat{
+    background:var(--surface);
+    border-radius:var(--radius-nested);
+    padding:14px 16px;
+    box-shadow:var(--shadow);
+  }
+  .stat-value{
+    font-size:1.9rem;
+    font-weight:500;
+    font-variant-numeric:tabular-nums;
+    color:var(--brand);
+  }
+  .stat-label{ font-size:.82rem; color:var(--text-muted); margin-top:2px; }
+  .quip{
+    font-size:.92rem;
+    color:var(--bg-ink-muted);
+    margin:0 0 20px;
+    min-height:1.4em;
+  }
+  .tally{ padding:10px 12px; }
+  .tally-row{
+    position:relative;
+    display:grid;
+    grid-template-columns:30px minmax(130px, 230px) 1fr auto;
+    align-items:center;
+    gap:12px;
+    padding:10px 10px;
+    border-radius:var(--radius-nested);
+  }
+  .tally-row.winner{ background:var(--pink-soft); }
+  .tally-row.flash{ animation:flash 1.2s var(--ease); }
+  .tally-rank{ font-weight:700; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .tally-row.winner .tally-rank{ color:var(--brand); }
+  .tally-who{ min-width:0; }
+  .tally-name{ font-weight:700; overflow-wrap:anywhere; }
+  .tally-title{ font-size:.78rem; color:var(--text-muted); margin-top:1px; }
+  .tally-row.winner .tally-title{ color:var(--brand); font-weight:600; }
+  .crown{ display:inline-block; margin-right:4px; animation:bob 2.2s ease-in-out infinite; }
+  .tally-bar{
+    height:12px;
+    border-radius:999px;
+    background:var(--surface-alt);
+    overflow:hidden;
+  }
+  .tally-bar > span{
+    display:block;
+    height:100%;
+    width:0;
+    border-radius:999px;
+    background:var(--text-muted);
+    opacity:.45;
+    transition:width 900ms var(--ease-pop);
+  }
+  .tally-row.winner .tally-bar > span{ background:var(--brand); opacity:1; }
+  .tally-count{
+    font-variant-numeric:tabular-nums;
+    font-weight:800;
+    min-width:2ch;
+    text-align:right;
+  }
+  .tie-badge{
+    display:inline-block;
+    margin-left:6px;
+    font-size:.7rem;
+    font-weight:800;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--brand);
+    background:var(--pink);
+    border-radius:999px;
+    padding:1px 8px;
+    vertical-align:2px;
+  }
+  .voters{ display:flex; flex-wrap:wrap; gap:6px; }
+  .voters .chip{ animation:rise 360ms var(--ease) both; animation-delay:calc(var(--i, 0) * 25ms); }
+  .empty{
+    color:var(--text-muted);
+    background:var(--surface);
+    border:1px dashed var(--border-strong);
+    border-radius:var(--radius);
+    padding:28px 22px;
+    text-align:center;
+    max-width:52ch;
+    margin:20px auto;
+    line-height:1.55;
+  }
+  .reset-zone{
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid var(--border-on-bg);
+    text-align:right;
+  }
+  .btn-danger{
+    font:inherit;
+    font-weight:500;
+    font-size:.82rem;
+    background:transparent;
+    color:var(--bg-ink-muted);
+    border:0;
+    padding:6px 4px;
+    cursor:pointer;
+    transition:color var(--dur) var(--ease);
+  }
+  .btn-danger:hover{ color:var(--danger); }
+  .btn-danger:disabled{ opacity:.5; cursor:default; }
+
+  /* Big reveal — full-screen drumroll for announcing the winners */
+  .reveal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:30;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px;
+    overflow-y:auto;
+    animation:rise 300ms var(--ease) both;
+  }
+  .reveal-inner{ width:100%; max-width:560px; text-align:center; }
+  .reveal-kicker{
+    font-size:1.4rem;
+    color:var(--bg-ink);
+    margin:0 0 22px;
+    min-height:2em;
+  }
+  .reveal-kicker .drum{ display:inline-block; animation:drum 180ms linear infinite; }
+  .reveal-cards{ display:flex; flex-direction:column-reverse; gap:12px; margin-bottom:24px; }
+  .reveal-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    background:var(--surface);
+    color:var(--text);
+    border-radius:var(--radius-nested);
+    box-shadow:var(--shadow);
+    padding:14px 18px;
+    animation:revealCard 800ms var(--ease-pop) both;
+  }
+  .reveal-card.first{ padding:20px 22px; box-shadow:inset 0 0 0 2px var(--brand); }
+  .reveal-card .place{ font-size:1.8rem; width:44px; text-align:center; flex:none; }
+  .reveal-card .who{ flex:1; }
+  .reveal-card .nm{ font-weight:800; font-size:1.15rem; }
+  .reveal-card.first .nm{ font-size:1.5rem; }
+  .reveal-card .ttl{ font-size:.85rem; color:var(--brand); font-weight:600; }
+  .reveal-card .votes{ font-weight:800; color:var(--brand); font-variant-numeric:tabular-nums; }
+
+  input:focus, .tab:focus-visible, button:focus-visible{
+    outline:2px solid var(--brand);
+    outline-offset:1px;
+  }
+
+  @media (max-width:520px){
+    .tally-row{ grid-template-columns:26px 1fr auto; }
+    .tally-bar{ grid-column:2 / 4; grid-row:2; }
+    .save-bar{ padding-left:16px; }
+    .save-bar .status{ font-size:.8rem; }
+    .btn-primary{ font-size:17px; padding:7px 20px; }
+    .pick-grid{ grid-template-columns:1fr; }
+    .toast{ bottom:84px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:1ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:1ms !important;
+    }
+    .floaties{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="floaties" id="floaties" aria-hidden="true" hidden></div>
+
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo-mark" viewBox="0 0 196.333 184.447" fill="#fffbf1" aria-hidden="true"><path d="M 97.574 184.443 C 89.233 184.443 76.966 181.782 65.9 169.121 C 51.737 152.911 53.882 129.338 56.86 96.716 L 57.212 92.858 C 58.58 77.73 59.872 63.437 59.245 52.938 C 59.078 50.9 57.941 40.924 51.488 40.268 C 51.265 40.246 51.046 40.234 50.823 40.234 C 43.494 40.234 34.905 52.646 29.082 61.983 L 22.17 73.066 L 0 59.237 L 6.912 48.154 C 13.82 37.076 28.185 14.048 50.334 14.048 C 52.076 14.048 53.865 14.189 55.646 14.468 C 75.846 17.639 84.569 38.792 85.32 51.376 C 86.066 63.836 84.689 79.077 83.226 95.214 L 82.793 99.904 C 80.87 120.602 78.695 144.063 85.569 151.932 C 89.327 156.236 93.236 158.325 97.514 158.325 C 97.956 158.325 98.385 158.304 98.792 158.27 C 104.962 157.776 112.814 153.614 120.902 146.543 C 128.123 140.227 133.551 133.311 134.92 131.123 C 154.618 99.638 165.036 70.813 168.696 37.663 C 168.76 36.955 170.236 21.033 170.206 12.533 L 170.159 0 L 196.285 0 L 196.332 12.439 C 196.366 22.44 194.676 40.384 194.659 40.564 C 190.548 77.785 178.955 110 157.068 144.981 C 153.979 149.92 146.728 158.669 138.099 166.212 C 125.459 177.264 112.93 183.353 100.865 184.314 C 99.779 184.4 98.672 184.447 97.574 184.447 L 97.57 184.447 L 97.574 184.443 Z" fill-rule="nonzero"/></svg>
+      <span class="sub">humør helte</span>
+      <span class="demo-badge" id="demo-badge" hidden>Demo</span>
+    </div>
+    <div class="topbar-right">
+      <nav class="tabs" id="tabs" hidden>
+        <button class="tab active" data-view="vote" type="button">Stem</button>
+        <button class="tab" data-view="results" type="button">Resultat</button>
+      </nav>
+      <div class="user-chip" id="user-chip" hidden>
+        <span id="user-name"></span>
+        <button id="logout-btn" type="button">Log ud</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="conn-banner" class="howto" hidden></div>
+
+  <section id="view-login" class="view" hidden>
+    <div class="card login-card rise">
+      <span class="intro-eyebrow">Afstemning</span>
+      <h1 class="intro-heading">Hvem skal være de nye Humør helte? 🎈</h1>
+      <p class="intro-why">Humør helte er holdet, der planlægger de sjove arrangementer i Vicuras året rundt. Log ind med din Vicuras Microsoft-konto for at stemme.</p>
+      <button class="btn-primary btn-ms" id="login-btn" type="button">
+        <svg viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+        Log ind med Microsoft
+      </button>
+      <p id="login-error" class="login-error" hidden></p>
+    </div>
+  </section>
+
+  <section id="view-loading" class="view">
+    <p class="lede" style="color:var(--bg-ink-muted);">Pumper balloner op …</p>
+  </section>
+
+  <section id="view-vote" class="view" hidden>
+    <div class="intro rise" style="--i:0">
+      <span class="intro-eyebrow">Afstemning</span>
+      <h1 class="intro-heading">Hej <span id="hello-name"></span> <span class="wave-hand" aria-hidden="true">👋</span> – hvem skal være de nye Humør helte?</h1>
+      <p class="intro-why">Humør helte er holdet, der planlægger de sjove arrangementer i Vicuras året rundt – sommerfest, julefrokost og alt det ind imellem. Nu skal vi vælge det næste hold, og du bestemmer med.</p>
+      <ol class="intro-steps">
+        <li><span class="num">1</span><span class="txt">Vælg <b>op til <span class="seat-count">4</span> kolleger</b>, du synes skal være Humør helte – <b id="quota-text"></b>, så begge kontorer er med.</span></li>
+        <li><span class="num">2</span><span class="txt">Tryk <b>Afgiv stemme</b>. Din stemme er hemmelig for alle andre end arrangøren.</span></li>
+        <li><span class="num">3</span><span class="txt">Du kan altid komme tilbage og ændre din stemme, så længe afstemningen er åben.</span></li>
+      </ol>
+    </div>
+
+    <div class="on-bg rise" style="--i:1">
+      <span class="intro-eyebrow">Tidligere Humør helte</span>
+      <h2 class="intro-heading">Tak for indsatsen! 🏅</h2>
+      <p class="lede">De her har allerede været Humør helte og har fortjent en pause fra ballonpustning. De kan derfor ikke vælges igen.</p>
+    </div>
+    <div class="heroes" id="former-heroes"></div>
+
+    <div id="ballot-form">
+      <div class="card ballot-card rise" style="--i:3">
+        <div class="ballot-head">
+          <span class="field-label">Vælg dine kandidater</span>
+          <span class="pick-count" id="pick-count"></span>
+        </div>
+        <div class="meter" id="meter" aria-hidden="true"></div>
+        <div class="picks" id="picks"></div>
+      </div>
+
+      <div class="save-bar">
+        <span class="status" id="vote-status">Ikke afgivet endnu</span>
+        <button class="btn-primary" id="vote-btn" type="button">Afgiv stemme</button>
+      </div>
+    </div>
+
+    <div id="thanks" class="card thanks" hidden>
+      <div class="big" aria-hidden="true">🎉</div>
+      <h2 class="intro-heading">Tak for din stemme!</h2>
+      <p class="muted" id="thanks-quip"></p>
+      <div class="chosen" id="thanks-chosen"></div>
+      <button class="btn-outline" id="edit-vote-btn" type="button">Ret min stemme</button>
+    </div>
+  </section>
+
+  <section id="view-results" class="view" hidden>
+    <div class="results-head">
+      <div class="on-bg">
+        <span class="intro-eyebrow">Stillingen lige nu</span>
+        <h2 class="intro-heading">De nye Humør helte</h2>
+        <p class="lede">Kun du kan se denne side. Den opdateres live, efterhånden som stemmerne tikker ind.</p>
+      </div>
+      <button class="btn-primary" id="reveal-btn" type="button" style="margin-bottom:16px;">🥁 Afslør vinderne</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value" id="stat-voters">0</div><div class="stat-label">Har stemt</div></div>
+      <div class="stat"><div class="stat-value" id="stat-turnout">0%</div><div class="stat-label">Deltagelse</div></div>
+      <div class="stat"><div class="stat-value" id="stat-votes">0</div><div class="stat-label">Stemmer i alt</div></div>
+    </div>
+    <p class="quip" id="turnout-quip"></p>
+    <p class="quip" id="quota-legend" style="margin-top:-12px;"></p>
+
+    <div id="tally" class="card tally" hidden></div>
+    <div id="results-empty" class="empty" hidden>Der er endnu ingen stemmer. Valgurnen ekkoer. 🦗</div>
+
+    <div class="ov-divider"></div>
+
+    <div class="on-bg">
+      <span class="intro-eyebrow">Deltagelse</span>
+      <h2 class="intro-heading" style="margin-bottom:14px;">Hvem har stemt</h2>
+    </div>
+    <div class="voters" id="voters"></div>
+
+    <div class="reset-zone">
+      <button class="btn-danger" id="reset-all-btn" type="button">Nulstil alle stemmer</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="reveal-overlay" id="reveal" hidden>
+  <div class="reveal-inner">
+    <p class="reveal-kicker" id="reveal-kicker"></p>
+    <div class="reveal-cards" id="reveal-cards"></div>
+    <button class="btn-outline" id="reveal-close" type="button" hidden>Tilbage til stillingen</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import {
+    getAuth, OAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  import {
+    getFirestore, doc, setDoc, getDoc, deleteDoc, collection, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+  /* ---------- Opsætning ----------
+     Hvem der må stemme, og hvem der kan vælges, styres IKKE her men i
+     Firestore-reglerne og dokumentet config/ballot (se humorhelte/firebase/). */
+  var VICURAS_TENANT = "afe3adb7-b58c-4908-8881-5aa193d355da";
+  // Kun denne konto kan se resultatet (håndhæves også i Firestore-reglerne).
+  var ADMIN_EMAIL = "christian@vicuras.dk";
+
+  // Demo med opdigtede navne til at se animationerne — virker kun lokalt (localhost/?demo).
+  var DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has("demo");
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyBi_qL2zaMBkXznH1iN2ksPD5ufRNhOkh4",
+    authDomain: "vicuras-humorhelte.firebaseapp.com",
+    projectId: "vicuras-humorhelte",
+    storageBucket: "vicuras-humorhelte.firebasestorage.app",
+    messagingSenderId: "510368394947",
+    appId: "1:510368394947:web:f0318ea7e017768f8bfc76"
+  };
+
+  var app = initializeApp(firebaseConfig);
+  var auth = getAuth(app);
+  var db = getFirestore(app);
+
+  var provider = new OAuthProvider("microsoft.com");
+  provider.setCustomParameters({ tenant: VICURAS_TENANT, prompt: "select_account" });
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var els = {};
+  ["tabs","user-chip","user-name","logout-btn","conn-banner","view-login","view-loading","view-vote","view-results",
+   "login-btn","login-error","hello-name","former-heroes","ballot-form","picks","pick-count","meter","vote-btn",
+   "vote-status","thanks","thanks-chosen","thanks-quip","edit-vote-btn","stat-voters","stat-turnout","stat-votes",
+   "turnout-quip","tally","results-empty","voters","reset-all-btn","toast","floaties","demo-badge","reveal-btn",
+   "reveal","reveal-kicker","reveal-cards","reveal-close","quota-text","quota-legend"].forEach(function(id){
+    els[id.replace(/-([a-z])/g, function(_, c){ return c.toUpperCase(); })] = document.getElementById(id);
+  });
+  els.tabButtons = document.querySelectorAll(".tab");
+
+  var ballot = null;        // config/ballot: { seats, people:[{id,name,first,formerHero}], accounts:{email:id} }
+  var me = null;            // personen der er logget ind (fra ballot.people)
+  var isAdmin = false;
+  var selected = [];        // valgte person-id'er
+  var latestVotes = [];
+  var stopResults = null;
+
+  /* ---------- Sjov ---------- */
+  function pickOne(list){ return list[Math.floor(Math.random() * list.length)]; }
+
+  var PICK_LINES = [
+    "{n} er med – der kommer kage 🍰",
+    "Godt valg! {n} kan vist arrangere fredagsbar i søvne 😴🍻",
+    "{n} er på holdet. Ballonerne er bestilt 🎈",
+    "{n} – en sand festlegende ✨",
+    "{n} er tilføjet. Playlisten er allerede under udarbejdelse 🎶",
+    "{n}! Rygtet siger, at der står en discokugle derhjemme 🪩",
+    "{n} er valgt. Nogen skal jo styre pølserne på grillen 🌭",
+    "{n} – fordi kontoret fortjener mere konfetti 🎊"
+  ];
+  var UNPICK_LINES = [
+    "{n} er taget af holdet – de overlever nok 😅",
+    "{n} er ude. Ballonerne er afbestilt 🎈💨",
+    "Farvel, {n}. Måske næste år 👋"
+  ];
+  var COUNT_LINES = [
+    "Ingen valgt endnu – festen venter",
+    "1 af 4 – en god start",
+    "2 af 4 – nu begynder det at ligne et hold",
+    "3 af 4 – én plads tilbage!",
+    "4 af 4 – drømmeholdet er samlet 🎉"
+  ];
+  var THANKS_LINES = [
+    "Din stemme er lagt i den digitale valgurne 🗳️ (som i øvrigt er lavet af kage).",
+    "Demokratiet takker – og det samme gør næste sommerfest ☀️",
+    "Stemmen er talt. Nu kan du roligt gå tilbage til dine mails 📬"
+  ];
+  var TITLES = ["👑 Fest-general", "🎈 Ballon-minister", "🍰 Kage-kommandør", "🪩 Disco-direktør"];
+  var PLACES = ["🥇", "🥈", "🥉", "🎖️"];
+
+  function turnoutQuip(pct){
+    if (pct === 0) return "Stille som en mandag morgen ☕";
+    if (pct < 25) return "Det går stille og roligt … meget stille 🐢";
+    if (pct < 50) return "Resten sidder vist i møde 📅";
+    if (pct < 75) return "Over halvdelen har stemt – momentum! 🚀";
+    if (pct < 100) return "Næsten alle – vi venter bare på de sidste 🥱";
+    return "Alle har stemt – demokratiet lever! 🎉";
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 2600);
+  }
+
+  function replay(el, cls){
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  var CONFETTI_COLORS = ["#772e4b", "#dab5cf", "#fffbf1", "#e0e5dd", "#fb6c66"];
+  function burst(fromEl, amount){
+    if (reduceMotion || typeof confetti !== "function") return;
+    var r = fromEl ? fromEl.getBoundingClientRect() : null;
+    var origin = r
+      ? { x:(r.left + r.width / 2) / innerWidth, y:(r.top + r.height / 2) / innerHeight }
+      : { x:.5, y:.6 };
+    confetti({ particleCount: amount || 40, spread: 70, startVelocity: 28, scalar: .8, ticks: 120, origin: origin, colors: CONFETTI_COLORS });
+  }
+  function celebrate(){
+    if (reduceMotion || typeof confetti !== "function") return;
+    var end = Date.now() + 1400;
+    (function frame(){
+      confetti({ particleCount: 5, angle: 60, spread: 60, origin: { x: 0, y: .7 }, colors: CONFETTI_COLORS });
+      confetti({ particleCount: 5, angle: 120, spread: 60, origin: { x: 1, y: .7 }, colors: CONFETTI_COLORS });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+  }
+
+  function startFloaties(){
+    if (reduceMotion || els.floaties.childElementCount) return;
+    var bits = ["🎈","🎉","✨","🍰","🪩","🎊","🧁","🎶"];
+    for (var i = 0; i < 14; i++){
+      var s = document.createElement("span");
+      s.textContent = bits[i % bits.length];
+      s.style.left = (Math.random() * 96) + "%";
+      s.style.fontSize = (18 + Math.random() * 20) + "px";
+      s.style.animationDuration = (14 + Math.random() * 14) + "s";
+      s.style.animationDelay = (-Math.random() * 24) + "s";
+      els.floaties.appendChild(s);
+    }
+  }
+
+  function countTo(el, value, suffix){
+    suffix = suffix || "";
+    var from = parseFloat(el.dataset.v || "0");
+    el.dataset.v = value;
+    if (reduceMotion || from === value){ el.textContent = value + suffix; return; }
+    var start = performance.now(), dur = 700;
+    (function step(now){
+      var t = Math.min((now - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(from + (value - from) * eased) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    })(start);
+  }
+
+  /* ---------- Visninger ---------- */
+  function showView(name){
+    els.viewLogin.hidden = name !== "login";
+    els.viewLoading.hidden = name !== "loading";
+    els.viewVote.hidden = name !== "vote";
+    els.viewResults.hidden = name !== "results";
+    els.floaties.hidden = name !== "login";
+    if (name === "login") startFloaties();
+    els.tabButtons.forEach(function(t){
+      t.classList.toggle("active", t.getAttribute("data-view") === name);
+    });
+    if (name === "results") renderResults(true);
+  }
+  els.tabButtons.forEach(function(tab){
+    tab.addEventListener("click", function(){ showView(tab.getAttribute("data-view")); });
+  });
+
+  function showLoginError(msg){
+    els.loginError.textContent = msg;
+    els.loginError.hidden = !msg;
+  }
+
+  /* ---------- Datakilde: Firebase, eller opdigtede data i demo ---------- */
+  var data = DEMO ? demoData() : {
+    loadBallot: function(){
+      return getDoc(doc(db, "config", "ballot")).then(function(snap){
+        if (!snap.exists()) throw new Error("config/ballot findes ikke");
+        return snap.data();
+      });
+    },
+    loadMyVote: function(id){
+      return getDoc(doc(db, "votes", id)).then(function(snap){
+        return snap.exists() ? (snap.data().votes || []) : null;
+      });
+    },
+    saveVote: function(id, votes){
+      return setDoc(doc(db, "votes", id), { votes: votes, updatedAt: serverTimestamp() });
+    },
+    watchVotes: function(cb, onErr){
+      return onSnapshot(collection(db, "votes"), function(snap){
+        cb(snap.docs.map(function(d){ return { id: d.id, votes: (d.data().votes || []) }; }));
+      }, onErr);
+    },
+    deleteVote: function(id){ return deleteDoc(doc(db, "votes", id)); }
+  };
+
+  /* ---------- Login ---------- */
+  els.loginBtn.addEventListener("click", function(){
+    showLoginError("");
+    els.loginBtn.disabled = true;
+    signInWithPopup(auth, provider).catch(function(err){
+      console.error(err);
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") return;
+      if (err.code === "auth/popup-blocked"){
+        showLoginError("Din browser blokerede login-vinduet. Tillad pop op-vinduer for denne side og prøv igen.");
+      } else {
+        showLoginError("Login mislykkedes. Hvis du fik besked om, at du ikke har adgang, er du ikke på listen over stemmeberettigede – kontakt Christian.");
+      }
+    }).finally(function(){ els.loginBtn.disabled = false; });
+  });
+
+  els.logoutBtn.addEventListener("click", function(){
+    if (DEMO){ location.search = ""; return; }
+    signOut(auth);
+  });
+
+  function onSignedIn(email, displayName){
+    if (stopResults){ stopResults(); stopResults = null; }
+    els.userChip.hidden = false;
+    els.userName.textContent = displayName || email || "";
+    showView("loading");
+
+    data.loadBallot().then(function(b){
+      ballot = b;
+      var myId = ballot.accounts ? ballot.accounts[email] : null;
+      me = (ballot.people || []).filter(function(p){ return p.id === myId; })[0] || null;
+      if (!me) throw { code: "permission-denied" };
+      isAdmin = DEMO || email === ADMIN_EMAIL;
+      els.tabs.hidden = !isAdmin;
+      els.userName.textContent = me.name;
+      return data.loadMyVote(me.id);
+    }).then(function(saved){
+      hasSaved = !!saved;
+      selected = saved ? saved.slice() : [];
+      renderBallotPage();
+      showView("vote");
+      if (isAdmin){
+        stopResults = data.watchVotes(function(v){
+          latestVotes = v;
+          if (!els.viewResults.hidden) renderResults(false);
+        }, function(err){
+          console.error(err);
+          els.connBanner.hidden = false;
+          els.connBanner.innerHTML = "<strong>Kunne ikke hente resultatet.</strong> Prøv at genindlæse siden.";
+        });
+      }
+    }).catch(function(err){
+      console.error(err);
+      if (err && err.code === "permission-denied"){
+        if (!DEMO) signOut(auth);
+        showLoginError("Kontoen " + (email || "") + " er ikke på listen over stemmeberettigede. Log ind med din egen Vicuras-konto, eller kontakt Christian.");
+      } else {
+        els.connBanner.hidden = false;
+        els.connBanner.innerHTML = "<strong>Kunne ikke hente afstemningen.</strong> Tjek din internetforbindelse og prøv at genindlæse siden.";
+      }
+    });
+  }
+
+  if (DEMO){
+    els.demoBadge.hidden = false;
+    onSignedIn("demo@vicuras.dk", "Demo");
+  } else {
+    onAuthStateChanged(auth, function(user){
+      ballot = null; me = null; isAdmin = false; selected = [];
+      els.connBanner.hidden = true;
+      els.tabs.hidden = true;
+      if (!user){
+        if (stopResults){ stopResults(); stopResults = null; }
+        els.userChip.hidden = true;
+        showView("login");
+        return;
+      }
+      onSignedIn((user.email || "").toLowerCase(), user.displayName);
+    });
+  }
+
+  /* ---------- Stemmeseddel ---------- */
+  var hasSaved = false;
+
+  function personById(id){
+    return (ballot.people || []).filter(function(p){ return p.id === id; })[0];
+  }
+  function candidates(){
+    return (ballot.people || []).filter(function(p){ return !p.formerHero && p.id !== me.id; })
+      .sort(function(a,b){ return a.name.localeCompare(b.name, "da"); });
+  }
+  function initials(name){
+    var parts = name.split(" ").filter(Boolean);
+    return (parts[0].charAt(0) + (parts.length > 1 ? parts[parts.length-1].charAt(0) : "")).toUpperCase();
+  }
+
+  function renderBallotPage(){
+    document.querySelectorAll(".seat-count").forEach(function(el){ el.textContent = ballot.seats; });
+    els.helloName.textContent = me.first;
+    els.quotaText.textContent = quotaSentence();
+
+    els.formerHeroes.innerHTML = "";
+    (ballot.people || []).filter(function(p){ return p.formerHero; }).forEach(function(p, i){
+      var card = document.createElement("div");
+      card.className = "hero rise";
+      card.style.setProperty("--i", 2 + i * 0.6);
+      card.innerHTML = '<span class="medal" aria-hidden="true">🏅</span><span class="avatar" aria-hidden="true"></span>' +
+        '<div><div class="hero-name"></div><div class="hero-meta">Pensioneret festlegende</div></div>';
+      card.querySelector(".avatar").textContent = initials(p.name);
+      card.querySelector(".hero-name").textContent = p.name;
+      els.formerHeroes.appendChild(card);
+    });
+
+    els.meter.innerHTML = "";
+    for (var i = 0; i < ballot.seats; i++) els.meter.appendChild(document.createElement("span"));
+
+    renderPicks(true);
+    if (hasSaved && selected.length) showThanks(false);
+    else { els.thanks.hidden = true; els.ballotForm.hidden = false; }
+  }
+
+  /* ---------- Kontorkvote: mindst X fra hvert kontor, både på stemmesedlen og på holdet ---------- */
+  function quotaOffices(){ return Object.keys(ballot.quota || {}).sort(); }
+  function officeName(o){ return (ballot.officeNames && ballot.officeNames[o]) || o; }
+  function officeCounts(ids){
+    var c = {};
+    ids.forEach(function(id){ var p = personById(id); if (p) c[p.office] = (c[p.office] || 0) + 1; });
+    return c;
+  }
+  // Hvor mange der mangler fra hvert kontor, fx [{office:"aarhus", n:1}].
+  function missing(ids){
+    var c = officeCounts(ids);
+    return quotaOffices().map(function(o){
+      return { office: o, n: Math.max(0, Number(ballot.quota[o]) - (c[o] || 0)) };
+    }).filter(function(m){ return m.n > 0; });
+  }
+  function needTotal(ids){ return missing(ids).reduce(function(a, m){ return a + m.n; }, 0); }
+  // Må p vælges, uden at det bliver umuligt at opfylde kvoten med de pladser der er tilbage?
+  function canAdd(p){
+    var next = selected.concat([p.id]);
+    return next.length <= ballot.seats && ballot.seats - next.length >= needTotal(next);
+  }
+  function missingText(list){
+    return list.map(function(m){ return m.n + " fra " + officeName(m.office); }).join(" og ");
+  }
+  function quotaSentence(){
+    return quotaOffices().map(function(o){ return "mindst " + ballot.quota[o] + " fra " + officeName(o); }).join(" og ");
+  }
+
+  function updateCount(){
+    var n = selected.length;
+    els.pickCount.textContent = ballot.seats === 4 ? COUNT_LINES[n] : (n + " af " + ballot.seats + " valgt");
+    Array.prototype.forEach.call(els.meter.children, function(s, i){ s.classList.toggle("on", i < n); });
+    var c = officeCounts(selected);
+    els.picks.querySelectorAll(".office-status").forEach(function(st){
+      var o = st.dataset.office;
+      var need = Number((ballot.quota || {})[o] || 0);
+      var have = c[o] || 0;
+      st.classList.toggle("ok", have >= need);
+      st.textContent = need
+        ? (have >= need ? "✓ " : "") + have + " valgt · mindst " + need
+        : have + " valgt";
+    });
+    els.picks.querySelectorAll(".pick").forEach(function(btn){
+      var on = btn.getAttribute("aria-pressed") === "true";
+      btn.classList.toggle("full", !on && !canAdd(personById(btn.dataset.id)));
+    });
+  }
+
+  function renderPicks(entrance){
+    els.picks.innerHTML = "";
+    var all = candidates();
+    var offices = quotaOffices();
+    all.forEach(function(p){ if (offices.indexOf(p.office) === -1) offices.push(p.office); });
+    var idx = 0;
+    offices.forEach(function(o){
+      var members = all.filter(function(p){ return p.office === o; });
+      if (!members.length) return;
+      var group = document.createElement("div");
+      group.className = "office-group";
+      group.innerHTML = '<div class="office-head"><span class="office-name"></span><span class="office-status"></span></div><div class="pick-grid"></div>';
+      group.querySelector(".office-name").textContent = "📍 " + officeName(o);
+      group.querySelector(".office-status").dataset.office = o;
+      var grid = group.querySelector(".pick-grid");
+      members.forEach(function(p){
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pick" + (entrance ? " rise" : "");
+        btn.dataset.id = p.id;
+        if (entrance) btn.style.setProperty("--i", 4 + (idx++) * 0.35);
+        btn.setAttribute("aria-pressed", selected.indexOf(p.id) !== -1 ? "true" : "false");
+        btn.innerHTML = '<span class="avatar" aria-hidden="true"></span><span class="pick-name"></span><span class="tick" aria-hidden="true">✓</span>';
+        btn.querySelector(".avatar").textContent = initials(p.name);
+        btn.querySelector(".pick-name").textContent = p.name;
+        btn.addEventListener("animationend", function(){ btn.classList.remove("rise"); }, { once: true });
+        btn.addEventListener("click", function(){ togglePick(p, btn); });
+        grid.appendChild(btn);
+      });
+      els.picks.appendChild(group);
+    });
+    updateCount();
+  }
+
+  function shakeMissingOffices(list){
+    list.forEach(function(m){
+      var st = els.picks.querySelector('.office-status[data-office="' + m.office + '"]');
+      if (st) replay(st, "shaking");
+    });
+  }
+
+  function togglePick(p, btn){
+    var on = selected.indexOf(p.id) !== -1;
+    if (on){
+      selected = selected.filter(function(id){ return id !== p.id; });
+      btn.setAttribute("aria-pressed", "false");
+      toast(pickOne(UNPICK_LINES).replace("{n}", p.first));
+    } else if (selected.length >= ballot.seats){
+      replay(btn, "shaking");
+      replay(els.pickCount, "shaking");
+      toast("Holdet er fuldt! Fjern én, før " + p.first + " kan komme med 🙅");
+      return;
+    } else if (!canAdd(p)){
+      var need = missing(selected);
+      replay(btn, "shaking");
+      shakeMissingOffices(need);
+      toast("De sidste pladser skal gå til " + missingText(need) + " – begge kontorer skal med til festen 🚆");
+      return;
+    } else {
+      selected.push(p.id);
+      btn.setAttribute("aria-pressed", "true");
+      replay(btn.querySelector(".avatar"), "popping");
+      replay(btn.querySelector(".tick"), "popping");
+      burst(btn, selected.length === ballot.seats ? 90 : 30);
+      toast(selected.length === ballot.seats
+        ? "Drømmeholdet er samlet! Tryk Afgiv stemme 🎉"
+        : pickOne(PICK_LINES).replace("{n}", p.first));
+    }
+    els.voteStatus.textContent = hasSaved ? "Ændringer ikke gemt" : "Ikke afgivet endnu";
+    updateCount();
+  }
+
+  els.voteBtn.addEventListener("click", function(){
+    if (!selected.length){
+      replay(els.picks, "shaking");
+      els.voteStatus.textContent = "Vælg mindst én kollega";
+      toast("Du skal vælge mindst én – ellers bliver det en meget kedelig fest 🥲");
+      return;
+    }
+    var need = missing(selected);
+    if (need.length){
+      shakeMissingOffices(need);
+      els.voteStatus.textContent = "Mangler " + missingText(need);
+      toast("Mangler " + missingText(need) + " – begge kontorer skal med til festen 🚆");
+      return;
+    }
+    els.voteBtn.disabled = true;
+    els.voteStatus.textContent = "Afgiver …";
+    data.saveVote(me.id, selected.slice()).then(function(){
+      hasSaved = true;
+      els.voteStatus.textContent = "Stemme afgivet ✓";
+      showThanks(true);
+    }).catch(function(err){
+      console.error(err);
+      els.voteStatus.textContent = "Kunne ikke afgive stemmen – prøv igen";
+    }).finally(function(){
+      els.voteBtn.disabled = false;
+    });
+  });
+
+  function showThanks(justVoted){
+    els.thanksChosen.innerHTML = "";
+    selected.forEach(function(id, i){
+      var p = personById(id);
+      var c = document.createElement("span");
+      c.className = "chip";
+      c.style.setProperty("--i", i);
+      c.textContent = p ? p.name : id;
+      els.thanksChosen.appendChild(c);
+    });
+    els.thanksQuip.textContent = justVoted ? pickOne(THANKS_LINES) : "Du har allerede stemt på:";
+    els.ballotForm.hidden = true;
+    els.thanks.hidden = false;
+    replay(els.thanks, "rise");
+    if (justVoted){
+      els.thanks.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      celebrate();
+    }
+  }
+  els.editVoteBtn.addEventListener("click", function(){
+    els.thanks.hidden = true;
+    els.ballotForm.hidden = false;
+    renderPicks(true);
+    els.voteStatus.textContent = "Din nuværende stemme er hentet ind";
+  });
+
+  /* ---------- Resultat (kun admin) ---------- */
+  var prevCounts = {};
+
+  function standings(){
+    var people = ballot.people || [];
+    var counts = {}, total = 0;
+    people.forEach(function(p){ if (!p.formerHero) counts[p.id] = 0; });
+    latestVotes.forEach(function(v){
+      v.votes.forEach(function(id){ if (id in counts){ counts[id]++; total++; } });
+    });
+    var ranked = Object.keys(counts).filter(function(id){ return counts[id] > 0; }).sort(function(a,b){
+      return counts[b] - counts[a] || personById(a).name.localeCompare(personById(b).name, "da");
+    });
+
+    // Holdet: først de bedste fra hvert kontor op til kvoten, derefter fri plads til de højeste af resten.
+    var seat = {};
+    quotaOffices().forEach(function(o){
+      ranked.filter(function(id){ return personById(id).office === o; })
+        .slice(0, Number(ballot.quota[o]))
+        .forEach(function(id){ seat[id] = o; });
+    });
+    ranked.forEach(function(id){
+      if (Object.keys(seat).length < ballot.seats && !(id in seat)) seat[id] = "fri";
+    });
+    var winners = ranked.filter(function(id){ return id in seat; });   // allerede sorteret efter stemmer
+    var lowestWinner = winners.length ? counts[winners[winners.length - 1]] : 0;
+
+    var rows = [], rank = 0, prev = null;
+    ranked.forEach(function(id, idx){
+      if (counts[id] !== prev){ rank = idx + 1; prev = counts[id]; }
+      var isWinner = id in seat;
+      // Dødt løb: en vinder og en ikke-vinder med samme antal, der kunne have byttet plads.
+      var tied = ranked.some(function(o){
+        if (o === id || counts[o] !== counts[id] || (o in seat) === isWinner) return false;
+        var w = isWinner ? id : o, other = isWinner ? o : id;
+        return seat[w] === "fri" || personById(w).office === personById(other).office;
+      });
+      rows.push({
+        id: id,
+        count: counts[id],
+        rank: rank,
+        winner: isWinner,
+        place: isWinner ? winners.indexOf(id) + 1 : null,
+        tied: tied,
+        bumped: !isWinner && counts[id] > lowestWinner
+      });
+    });
+    return { rows: rows, total: total, max: ranked.length ? counts[ranked[0]] : 0 };
+  }
+
+  function titleFor(r){
+    if (r.place && r.place <= TITLES.length) return TITLES[r.place - 1];
+    if (r.bumped) return "😬 Ramt af kontorkvoten";
+    if (r.count === 1) return "💌 Har mindst én hemmelig fan";
+    return "🏃 Stadig med i løbet";
+  }
+  function officeTag(id){
+    var t = document.createElement("span");
+    t.className = "office-tag";
+    t.textContent = officeName(personById(id).office);
+    return t;
+  }
+
+  function renderResults(entrance){
+    if (!ballot) return;
+    var people = ballot.people || [];
+    var s = standings();
+
+    // FLIP: husk hvor rækkerne stod, så de kan glide til deres nye plads.
+    var before = {};
+    Array.prototype.forEach.call(els.tally.children, function(row){
+      before[row.dataset.id] = row.getBoundingClientRect().top;
+    });
+
+    countTo(els.statVoters, latestVotes.length, " / " + people.length);
+    var pct = Math.round(latestVotes.length / Math.max(people.length, 1) * 100);
+    countTo(els.statTurnout, pct, "%");
+    countTo(els.statVotes, s.total);
+    els.turnoutQuip.textContent = turnoutQuip(pct);
+    var free = ballot.seats - quotaOffices().reduce(function(a, o){ return a + Number(ballot.quota[o]); }, 0);
+    els.quotaLegend.textContent = "📍 Holdet: " + quotaSentence() + (free > 0 ? " + " + free + " fri plads" : "") +
+      ". Markerede rækker er holdet, som det ser ud lige nu.";
+
+    els.tally.innerHTML = "";
+    s.rows.forEach(function(r, i){
+      var row = document.createElement("div");
+      row.className = "tally-row" + (r.winner ? " winner" : "");
+      row.dataset.id = r.id;
+      row.innerHTML = '<span class="tally-rank"></span><div class="tally-who"><div class="tally-name"></div><div class="tally-title"></div></div>' +
+        '<div class="tally-bar"><span></span></div><span class="tally-count"></span>';
+      row.querySelector(".tally-rank").textContent = r.rank + ".";
+      var nameEl = row.querySelector(".tally-name");
+      if (r.place === 1){
+        var crown = document.createElement("span");
+        crown.className = "crown";
+        crown.setAttribute("aria-hidden","true");
+        crown.textContent = "👑";
+        nameEl.appendChild(crown);
+      }
+      nameEl.appendChild(document.createTextNode(personById(r.id).name));
+      nameEl.appendChild(officeTag(r.id));
+      if (r.tied){
+        var tie = document.createElement("span");
+        tie.className = "tie-badge";
+        tie.textContent = "Dødt løb";
+        nameEl.appendChild(tie);
+      }
+      row.querySelector(".tally-title").textContent = titleFor(r);
+      var countEl = row.querySelector(".tally-count");
+      countEl.textContent = r.count;
+      var fill = row.querySelector(".tally-bar > span");
+      var oldCount = prevCounts[r.id] || 0;
+      fill.style.width = (entrance ? 0 : (s.max ? oldCount / s.max * 100 : 0)) + "%";
+      els.tally.appendChild(row);
+
+      if (entrance){
+        row.classList.add("rise");
+        row.style.setProperty("--i", i);
+      } else if (r.id in before){
+        var dy = before[r.id] - row.getBoundingClientRect().top;
+        if (dy && !reduceMotion){
+          row.animate([{ transform: "translateY(" + dy + "px)" }, { transform: "none" }],
+                      { duration: 600, easing: "cubic-bezier(0.34,1.56,0.64,1)" });
+        }
+        if (r.count !== oldCount){
+          row.classList.add("flash");
+          replay(countEl, "popping");
+        }
+      } else {
+        row.classList.add("rise");
+      }
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          fill.style.width = (s.max ? r.count / s.max * 100 : 0) + "%";
+        });
+      });
+    });
+    prevCounts = {};
+    s.rows.forEach(function(r){ prevCounts[r.id] = r.count; });
+    els.tally.hidden = !s.rows.length;
+    els.resultsEmpty.hidden = s.rows.length > 0;
+    els.revealBtn.disabled = s.rows.length === 0;
+
+    var voted = {};
+    latestVotes.forEach(function(v){ voted[v.id] = true; });
+    els.voters.innerHTML = "";
+    people.slice().sort(function(a,b){
+      return (voted[b.id] ? 1 : 0) - (voted[a.id] ? 1 : 0) || a.name.localeCompare(b.name, "da");
+    }).forEach(function(p, i){
+      var c = document.createElement("span");
+      c.className = "chip " + (voted[p.id] ? "quiet" : "missing");
+      if (entrance) c.style.setProperty("--i", i);
+      else c.style.animation = "none";
+      c.textContent = (voted[p.id] ? "✓ " : "💤 ") + p.name;
+      c.title = voted[p.id] ? "Har stemt" : "Sover stadig";
+      els.voters.appendChild(c);
+    });
+    els.resetAllBtn.disabled = latestVotes.length === 0;
+  }
+
+  /* ---------- Den store afsløring ---------- */
+  var revealTimers = [];
+  els.revealBtn.addEventListener("click", function(){
+    var winners = standings().rows.filter(function(r){ return r.winner; })
+      .sort(function(a, b){ return a.place - b.place; });
+    if (!winners.length) return;
+    els.revealCards.innerHTML = "";
+    els.revealClose.hidden = true;
+    els.reveal.hidden = false;
+    els.revealKicker.innerHTML = '<span class="drum">🥁</span> Trommehvirvel …';
+
+    var order = winners.slice().reverse();           // sidste plads først, vinderen til sidst
+    var step = reduceMotion ? 300 : 2200;
+    order.forEach(function(r, i){
+      var last = i === order.length - 1;
+      revealTimers.push(setTimeout(function(){
+        els.revealKicker.innerHTML = last
+          ? '<span class="drum">🥁</span> Og på førstepladsen …'
+          : '<span class="drum">🥁</span> På ' + r.place + '. pladsen …';
+      }, i * step));
+      revealTimers.push(setTimeout(function(){
+        var card = document.createElement("div");
+        card.className = "reveal-card" + (r.place === 1 ? " first" : "");
+        card.innerHTML = '<span class="place" aria-hidden="true"></span><div class="who"><div class="nm"></div><div class="ttl"></div></div><span class="votes"></span>';
+        card.querySelector(".place").textContent = PLACES[Math.min(r.place, PLACES.length) - 1];
+        card.querySelector(".nm").textContent = personById(r.id).name;
+        card.querySelector(".nm").appendChild(officeTag(r.id));
+        card.querySelector(".ttl").textContent = titleFor(r) + (r.tied ? " · ⚖️ dødt løb – træk lod!" : "");
+        card.querySelector(".votes").textContent = r.count + (r.count === 1 ? " stemme" : " stemmer");
+        els.revealCards.appendChild(card);
+        burst(card, last ? 60 : 25);
+        if (last){
+          els.revealKicker.textContent = "🎉 Mød de nye Humør helte! 🎉";
+          celebrate();
+          els.revealClose.hidden = false;
+        }
+      }, i * step + step * 0.7));
+    });
+  });
+  els.revealClose.addEventListener("click", function(){
+    revealTimers.forEach(clearTimeout);
+    revealTimers = [];
+    els.reveal.hidden = true;
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && !els.reveal.hidden) els.revealClose.click();
+  });
+
+  /* ---------- Nulstil alle stemmer (admin) — tryk to gange for at bekræfte ---------- */
+  var resetArmed = false;
+  var resetDefaultLabel = "Nulstil alle stemmer";
+  els.resetAllBtn.addEventListener("click", function(){
+    var btn = els.resetAllBtn;
+    if (!resetArmed){
+      resetArmed = true;
+      btn.textContent = "Sikker? Tryk igen for at slette alle stemmer";
+      setTimeout(function(){
+        resetArmed = false;
+        btn.textContent = resetDefaultLabel;
+      }, 4000);
+      return;
+    }
+    resetArmed = false;
+    btn.disabled = true;
+    btn.textContent = "Sletter …";
+    Promise.all(latestVotes.map(function(v){ return data.deleteVote(v.id); })).then(function(){
+      btn.textContent = resetDefaultLabel;
+    }).catch(function(err){
+      console.error(err);
+      btn.textContent = "Kunne ikke slette – prøv igen";
+    }).finally(function(){
+      btn.disabled = latestVotes.length === 0;
+    });
+  });
+
+  /* ---------- Demo: opdigtede kolleger og stemmer der tikker ind ---------- */
+  function demoData(){
+    var names = ["Fie Festlig","Bo Ballon","Kaj Kagemand","Dorte Disco","Lise Lagkage","Palle Pynt","Gitte Grill",
+                 "Søren Slush","Mette Muffin","Jens Jingle","Tove Twist","Rasmus Rosin","Hanne Hattebånd","Ole Ost"];
+    var heroes = ["Henny Helt","Carl Konfetti"];
+    var aarhus = ["Gitte Grill","Ole Ost","Tove Twist","Hanne Hattebånd","Carl Konfetti"];
+    function mk(n, hero){
+      var id = n.toLowerCase().replace(/ø/g,"oe").replace(/å/g,"aa").replace(/æ/g,"ae").replace(/[^a-z]+/g,"-");
+      return { id: id, name: n, first: n.split(" ")[0], formerHero: !!hero, office: aarhus.indexOf(n) !== -1 ? "aarhus" : "kbh" };
+    }
+    var people = [mk("Demo Dennis")].concat(names.map(function(n){ return mk(n); }), heroes.map(function(n){ return mk(n, true); }));
+    var byId = {};
+    people.forEach(function(p){ byId[p.id] = p; });
+    var cands = people.filter(function(p){ return !p.formerHero; }).map(function(p){ return p.id; });
+    var weights = cands.map(function(_, i){ return 1 / (i + 1.5); });
+    function randomBallot(){
+      for (;;){
+        var picks = [];
+        while (picks.length < 4){
+          var r = Math.random() * weights.reduce(function(a,b){ return a+b; }, 0);
+          for (var i = 0; i < cands.length; i++){ r -= weights[i]; if (r <= 0) break; }
+          var id = cands[Math.min(i, cands.length - 1)];
+          if (picks.indexOf(id) === -1) picks.push(id);
+        }
+        var a = picks.filter(function(id){ return byId[id].office === "aarhus"; }).length;
+        if (a >= 1 && picks.length - a >= 2) return picks;
+      }
+    }
+    var votes = {};
+    people.slice(1, 7).forEach(function(p){ votes[p.id] = randomBallot(); });
+    var listener = null;
+    function emit(){ if (listener) listener(Object.keys(votes).map(function(id){ return { id: id, votes: votes[id] }; })); }
+    return {
+      loadBallot: function(){
+        return Promise.resolve({
+          seats: 4, people: people, accounts: { "demo@vicuras.dk": "demo-dennis" },
+          quota: { aarhus: 1, kbh: 2 }, officeNames: { aarhus: "Århus", kbh: "København" }
+        });
+      },
+      loadMyVote: function(id){ return Promise.resolve(votes[id] || null); },
+      saveVote: function(id, v){
+        return new Promise(function(res){ setTimeout(function(){ votes[id] = v; emit(); res(); }, 400); });
+      },
+      watchVotes: function(cb){
+        listener = cb;
+        emit();
+        var t = setInterval(function(){
+          var waiting = people.filter(function(p){ return !votes[p.id]; });
+          if (!waiting.length) return clearInterval(t);
+          votes[pickOne(waiting).id] = randomBallot();
+          emit();
+        }, 3500);
+        return function(){ clearInterval(t); listener = null; };
+      },
+      deleteVote: function(id){ delete votes[id]; emit(); return Promise.resolve(); }
+    };
+  }
+</script>
+</body>
+</html>
