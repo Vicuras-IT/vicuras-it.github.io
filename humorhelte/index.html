@@ -792,7 +792,7 @@
       </ol>
     </div>
 
-    <div class="on-bg rise" style="--i:1">
+    <div class="on-bg rise" style="--i:1" id="heroes-intro">
       <span class="intro-eyebrow">Tidligere Humør helte</span>
       <h2 class="intro-heading">Tak for indsatsen! 🏅</h2>
       <p class="lede">De her har allerede været Humør helte og har fortjent en pause fra ballonpustning. De kan derfor ikke vælges igen.</p>
@@ -1176,7 +1176,10 @@
     els.quotaText.textContent = quotaSentence();
 
     els.formerHeroes.innerHTML = "";
-    (ballot.people || []).filter(function(p){ return p.formerHero; }).forEach(function(p, i){
+    var heroes = (ballot.people || []).filter(function(p){ return p.formerHero; });
+    els.formerHeroes.hidden = !heroes.length;
+    document.getElementById("heroes-intro").hidden = !heroes.length;
+    heroes.forEach(function(p, i){
       var card = document.createElement("div");
       card.className = "hero rise";
       card.style.setProperty("--i", 2 + i * 0.6);
