@@ -916,7 +916,7 @@
   });
   els.tabButtons = document.querySelectorAll(".tab");
 
-  var ballot = null;        // config/ballot: { seats, people:[{id,name,first,formerHero}], accounts:{email:id} }
+  var ballot = null;        // config/ballot: { seats, people:[{id,name,first,office,formerHero,candidate}], accounts:{email:id} }
   var me = null;            // personen der er logget ind (fra ballot.people)
   var isAdmin = false;
   var selected = [];        // valgte person-id'er
@@ -1155,11 +1155,14 @@
   /* ---------- Stemmeseddel ---------- */
   var hasSaved = false;
 
+  // Kan vælges: ikke tidligere helt og ikke markeret som kun-stemmer (candidate === false).
+  function isCandidate(p){ return !p.formerHero && p.candidate !== false; }
+
   function personById(id){
     return (ballot.people || []).filter(function(p){ return p.id === id; })[0];
   }
   function candidates(){
-    return (ballot.people || []).filter(function(p){ return !p.formerHero && p.id !== me.id; })
+    return (ballot.people || []).filter(function(p){ return isCandidate(p) && p.id !== me.id; })
       .sort(function(a,b){ return a.name.localeCompare(b.name, "da"); });
   }
   function initials(name){
@@ -1372,7 +1375,7 @@
   function standings(){
     var people = ballot.people || [];
     var counts = {}, total = 0;
-    people.forEach(function(p){ if (!p.formerHero) counts[p.id] = 0; });
+    people.forEach(function(p){ if (isCandidate(p)) counts[p.id] = 0; });
     latestVotes.forEach(function(v){
       v.votes.forEach(function(id){ if (id in counts){ counts[id]++; total++; } });
     });
